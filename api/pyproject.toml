@@ -1,0 +1,28 @@
+[project]
+name = "soma-api"
+version = "0.1.0"
+description = "FastAPI control plane for the SOMA architecture platform"
+requires-python = ">=3.12"
+dependencies = [
+    "PyJWT>=2.9,<3",
+    "fastapi>=0.117,<1",
+    "langchain-core>=1,<2",
+    "langchain-mcp-adapters>=0.2,<1",
+    "langchain-openai>=1,<2",
+    "langgraph>=1,<2",
+    "pyyaml>=6,<7",
+    "uvicorn[standard]>=0.35,<1",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<1",
+    "pytest>=8,<9",
+]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.9"]
+build-backend = "uv_build"
+
+[tool.vercel]
+entrypoint = "soma_api.main:app"

@@ -1,30 +1,52 @@
 import { useEffect, useState } from "react";
 import mark from "./assets/soma-mark.svg";
 import collectiveHousing from "../assets/vivienda colectiva.jpg";
-import existingHouse from "../assets/proyecto.png";
+import existingHouse from "../assets/proyecto.webp";
 import droneVideo from "../assets/la_idea_no_es_ver_el_dron_sino.mp4";
 
-const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8767";
+const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
 
 async function request(path, options = {}) {
   const response = await fetch(`${API}${path}`, options);
   const type = response.headers.get("content-type") || "";
   const payload = type.includes("application/json") ? await response.json() : await response.blob();
-  if (!response.ok) throw new Error(payload.detail || "La API no pudo completar la solicitud.");
+  if (!response.ok) throw new Error(payload?.detail || payload?.error || "La API no pudo completar la solicitud.");
   return payload;
 }
 
 const money = (value) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value || 0);
 const number = (value) => new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value || 0);
 
+function RemodelSimulator() {
+  const [form, setForm] = useState({ area_m2: 120, units: 2, tier: "standard", acquisition_cost: 0, monthly_rent_per_unit: 0, monthly_operating_expenses: 0 });
+  const [result, setResult] = useState(null); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
+  function change(event) { setForm((current) => ({ ...current, [event.target.name]: event.target.value })); }
+  async function calculate(event) {
+    event.preventDefault(); setBusy(true); setError("");
+    try {
+      const data = await request("/api/sales/simulation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, area_m2: Number(form.area_m2), units: Number(form.units), acquisition_cost: Number(form.acquisition_cost), monthly_rent_per_unit: Number(form.monthly_rent_per_unit), monthly_operating_expenses: Number(form.monthly_operating_expenses) }) });
+      setResult(data);
+    } catch (requestError) { setError(requestError.message); } finally { setBusy(false); }
+  }
+  const roi = result?.returns?.annual_roi_pct == null ? "—" : `${result.returns.annual_roi_pct}%`;
+  const payback = result?.returns?.payback_years == null ? "—" : `${result.returns.payback_years} años`;
+  return <section className="sales-simulator"><div className="simulator-copy"><span className="eyebrow">SOMA / PRIMERA CUENTA</span><h2>¿Qué podría sostener<br /><em>la transformación?</em></h2><p>Una simulación rápida para comparar área, unidades, costo de obra y renta. No es un avalúo ni una promesa de rentabilidad: es el punto de partida para hacer mejores preguntas.</p><small>Los costos por m² y porcentajes viven en `api/src/soma_api/data/remodeling.yml`.</small></div><form className="simulator-form" onSubmit={calculate}><label>Área a intervenir (m²)<input name="area_m2" type="number" min="1" max="100000" value={form.area_m2} onChange={change} required /></label><label>Unidades<select name="units" value={form.units} onChange={change}><option value="1">1 unidad</option><option value="2">2 unidades</option><option value="3">3 unidades</option><option value="4">4 unidades</option><option value="6">6 unidades</option></select></label><label>Calidad de obra<select name="tier" value={form.tier} onChange={change}><option value="basic">Base</option><option value="standard">Estándar</option><option value="premium">Alta</option></select></label><label>Compra del inmueble (COP)<input name="acquisition_cost" type="number" min="0" step="1000000" value={form.acquisition_cost} onChange={change} /></label><label>Renta mensual por unidad (COP)<input name="monthly_rent_per_unit" type="number" min="0" step="50000" value={form.monthly_rent_per_unit} onChange={change} /></label><label>Gastos mensuales (COP)<input name="monthly_operating_expenses" type="number" min="0" step="50000" value={form.monthly_operating_expenses} onChange={change} /></label><button className="button button-dark" disabled={busy}>{busy ? "Calculando…" : "Ver escenario ↗"}</button>{error && <small className="simulator-error" role="status">{error}</small>}</form><div className="simulator-result"><span className="eyebrow">ESCENARIO PRELIMINAR</span><div className="simulator-kpis"><div><small>Inversión total</small><strong>{result ? money(result.investment.total) : "—"}</strong></div><div><small>Flujo neto anual</small><strong>{result ? money(result.income.net_annual) : "—"}</strong></div><div><small>ROI anual</small><strong>{roi}</strong></div><div><small>Payback</small><strong>{payback}</strong></div></div>{result && <small className="simulator-note">{result.assumptions.note} Ocupación asumida: {Math.round(result.income.occupancy_rate * 100)}%.</small>}</div></section>;
+}
+
 function Brand({ onHome }) {
   return <button className="brand" onClick={onHome}><img src={mark} alt="" /><span>SOMA</span></button>;
 }
 
+function goTo(view, onNavigate) {
+  if (view === "sales") window.history.pushState({}, "", "/ventas");
+  if (view === "login") window.history.pushState({}, "", "/");
+  onNavigate(view);
+}
+
 function Header({ view, onNavigate, onLogout }) {
   if (view === "login") return <header className="site-header auth-header"><Brand onHome={() => {}} /><span className="nav-context">ACCESO ADMINISTRATIVO / LOCAL</span></header>;
-  if (view === "sales") return <header className="site-header"><Brand onHome={() => onNavigate("sales")} /><span className="nav-context">SOMA / VENTAS</span><button className="header-action" onClick={() => onNavigate("login")}>Acceso admin ↗</button></header>;
-  return <header className="site-header"><Brand onHome={() => onNavigate("dashboard")} /><span className="nav-context">SOMA / CONTROL ROOM</span><div className="header-actions"><button className="header-sales" onClick={() => onNavigate("sales")}>Ver ventas ↗</button><button className="header-action" onClick={onLogout}>Cerrar sesión</button></div></header>;
+  if (view === "sales") return <><header className="site-header"><Brand onHome={() => goTo("sales", onNavigate)} /><span className="nav-context">SOMA / VENTAS</span><button className="header-action" onClick={() => goTo("login", onNavigate)}>Acceso admin ↗</button></header><RemodelSimulator /></>;
+  return <header className="site-header"><Brand onHome={() => goTo("sales", onNavigate)} /><span className="nav-context">SOMA / CONTROL ROOM</span><div className="header-actions"><button className="header-sales" onClick={() => goTo("sales", onNavigate)}>Ver ventas ↗</button><button className="header-action" onClick={onLogout}>Cerrar sesión</button></div></header>;
 }
 
 function AdminLogin({ onLogin }) {
@@ -39,11 +61,11 @@ function AdminLogin({ onLogin }) {
       onLogin(data.token);
     } catch (error) { setMessage(error.message); }
   }
-  return <main className="login-shell"><div className="login-rail"><span className="eyebrow">SOMA / CONTROL ROOM</span><h1>De la factura<br />al <em>criterio.</em></h1><p>Cada documento trae una señal: un costo, un proveedor, una decisión pendiente. Entra para convertir ese ruido en una lectura operativa.</p><div className="login-sequence"><span><b>01</b>Importar</span><span><b>02</b>Entender</span><span><b>03</b>Decidir</span></div></div><form className="login-card" onSubmit={login}><div className="login-card-mark"><img src={mark} alt="" /></div><span className="eyebrow">ÁREA RESTRINGIDA</span><h2>Iniciar sesión</h2><p>El dashboard, las facturas y el asesor RAG están protegidos.</p><label>Usuario<input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" required /></label><label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required /></label><button className="button button-dark wide" type="submit">Entrar al control room ↗</button>{message && <small className="login-message" role="status">{message}</small>}<small className="login-note">Credenciales definidas en el archivo `.env` del backend.</small></form></main>;
+  return <main className="login-shell"><div className="login-rail"><span className="eyebrow">SOMA / CONTROL ROOM</span><h1>De la factura<br />al <em>criterio.</em></h1><p>Cada documento trae una señal: un costo, un proveedor, una decisión pendiente. Entra para convertir ese ruido en una lectura operativa.</p><div className="login-sequence"><span><b>01</b>Importar</span><span><b>02</b>Entender</span><span><b>03</b>Decidir</span></div></div><form className="login-card" onSubmit={login}><div className="login-card-mark"><img src={mark} alt="" /></div><span className="eyebrow">ÁREA RESTRINGIDA</span><h2>Iniciar sesión</h2><p>El dashboard, las facturas y el asesor RAG están protegidos.</p><label>Usuario<input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" required /></label><label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required /></label><button className="button button-dark wide" type="submit">Entrar al control room ↗</button>{message && <small className="login-message" role="status">{message}</small>}<small className="login-note">La contraseña se valida contra el hash almacenado en SQLite.</small></form></main>;
 }
 
 function DashboardNav({ view, onNavigate }) {
-  const options = [["dashboard", "Resumen"], ["pipeline", "Facturas"], ["rag", "Inteligencia"]];
+  const options = [["dashboard", "Resumen"], ["pipeline", "Facturas"], ["rag", "Inteligencia"], ["guide", "Orientación"]];
   return <nav className="dashboard-nav" aria-label="Módulos administrativos">{options.map(([id, label]) => <button className={view === id ? "active" : ""} onClick={() => onNavigate(id)} key={id}>{label}</button>)}</nav>;
 }
 

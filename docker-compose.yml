@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: ./api
+    env_file:
+      - path: ./api/.env
+        required: false
+    volumes:
+      - soma_data:/app/data
+    restart: unless-stopped
+
+  proxy:
+    image: caddy:2.10-alpine
+    depends_on:
+      - api
+    ports:
+      - "8000:80"
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+    restart: unless-stopped
+
+volumes:
+  soma_data:

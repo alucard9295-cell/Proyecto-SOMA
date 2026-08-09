@@ -12,3 +12,12 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Python API runtime data
+api/.env
+api/.venv/
+api/data/
+api/.pytest_cache/
+api/dist/
+api/**/__pycache__/
+*.pyc
