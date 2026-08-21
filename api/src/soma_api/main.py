@@ -13,6 +13,7 @@ from .routes.auth import router as auth_router
 from .routes.summary import router as summary_router
 from .routes.agent import router as agent_router
 from .routes.simulation import router as simulation_router
+from .routes.construction import router as construction_router
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -72,6 +73,7 @@ app.include_router(auth_router)
 app.include_router(summary_router)
 app.include_router(agent_router)
 app.include_router(simulation_router)
+app.include_router(construction_router)
 
 
 @app.get("/health", tags=["system"])

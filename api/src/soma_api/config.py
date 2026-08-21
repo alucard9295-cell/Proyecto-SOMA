@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import os
+from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -30,7 +31,7 @@ def load_settings() -> Settings:
     if environment == "production" and secret == "local-development-only-change-me":
         raise RuntimeError("JWT_SECRET must be configured in production")
     return Settings(
-        database_path=os.getenv("DATABASE_PATH", "data/soma.sqlite3"),
+        database_path=os.getenv("DATABASE_PATH", str(Path(__file__).resolve().parents[2] / "data" / "soma.sqlite3")),
         jwt_secret=secret,
         cors_origins=origins,
         allowed_hosts=tuple(
