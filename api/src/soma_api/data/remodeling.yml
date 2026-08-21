@@ -1,0 +1,18 @@
+currency: COP
+cost_per_m2:
+  basic: 1800000
+  standard: 2600000
+  premium: 3800000
+percentages:
+  design: 0.12
+  permits: 0.03
+  contingency: 0.10
+  closing_costs: 0.03
+  management: 0.08
+  maintenance: 0.05
+  property_tax_annual: 0.01
+  insurance_annual: 0.005
+defaults:
+  occupancy_rate: 0.92
+  annual_rent_growth: 0.04
+  annual_appreciation: 0.05
