@@ -1,0 +1,7 @@
+node_modules
+dist
+.git
+api/.venv
+api/data
+graphify-out
+e2e

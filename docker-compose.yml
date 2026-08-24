@@ -2,21 +2,39 @@ services:
   api:
     build:
       context: ./api
+    environment:
+      # Valores de desarrollo. En produccion vienen del entorno del proveedor.
+      DATABASE_PATH: /app/data/soma.sqlite3
+      JWT_SECRET: ${JWT_SECRET:-local-compose-secret-change-me-please-32b}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      # El navegador habla con el proxy, no con el API: mismo origen, sin CORS.
+      ALLOWED_HOSTS: api,localhost,127.0.0.1,testserver
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     env_file:
       - path: ./api/.env
         required: false
     volumes:
       - soma_data:/app/data
+    # Sin `ports`: solo alcanzable desde la red interna, a traves del proxy.
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
   proxy:
-    image: caddy:2.10-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.web
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
       - "8000:80"
-    volumes:
-      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
     restart: unless-stopped
 
 volumes:

@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import logging
+from time import perf_counter
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request
@@ -12,6 +13,7 @@ from starlette.responses import JSONResponse
 from .agent import ArchitectureAgent
 from .config import load_settings
 from .database import database_ready, init_db
+from .observability import configure_logging
 from .routes.auth import router as auth_router
 from .routes.summary import router as summary_router
 from .routes.agent import router as agent_router
@@ -61,14 +63,32 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         request_id = str(uuid4())
         request.state.request_id = request_id
+        started = perf_counter()
+        context = {
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "client": request.client.host if request.client else None,
+        }
         try:
             response = await call_next(request)
         except Exception:
-            logger.exception("Unhandled request error", extra={"request_id": request_id})
+            logger.exception(
+                "Error no controlado",
+                extra={**context, "duration_ms": round((perf_counter() - started) * 1000, 2)},
+            )
             response = JSONResponse(
                 {"detail": "Error interno del servidor", "request_id": request_id},
                 status_code=500,
             )
+        duration_ms = round((perf_counter() - started) * 1000, 2)
+        # Un evento por peticion, correlacionable con el X-Request-ID que ve
+        # el usuario cuando algo falla.
+        logger.log(
+            logging.WARNING if response.status_code >= 500 else logging.INFO,
+            "request",
+            extra={**context, "status": response.status_code, "duration_ms": duration_ms},
+        )
         response.headers["X-Request-ID"] = request_id
         return response
 
@@ -76,8 +96,13 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings = load_settings()
+    configure_logging(settings.log_level)
     app.state.settings = settings
     init_db(settings.database_path)
+    logger.info(
+        "api iniciada",
+        extra={"environment": settings.environment, "database": settings.database_path},
+    )
     await app.state.agent.initialize()
     yield
 

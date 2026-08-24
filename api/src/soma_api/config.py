@@ -19,6 +19,7 @@ class Settings:
     mcp_allowed_tools: tuple[str, ...] = ()
     mcp_timeout_seconds: float = 10.0
     mcp_max_output_chars: int = 12000
+    log_level: str = "INFO"
 
 
 def load_settings() -> Settings:
@@ -71,4 +72,5 @@ def load_settings() -> Settings:
         mcp_allowed_tools=allowed_tools,
         mcp_timeout_seconds=mcp_timeout_seconds,
         mcp_max_output_chars=mcp_max_output_chars,
+        log_level=os.getenv("LOG_LEVEL", "INFO"),
     )
