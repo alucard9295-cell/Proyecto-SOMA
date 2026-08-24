@@ -170,6 +170,7 @@ ventas:
 asesor:
   burbuja_abrir: Hablar con el asesor
   burbuja_cerrar: Cerrar
+  reiniciar: Reiniciar la conversación
   titulo: Asesor SOMA
   subtitulo: Orientación preliminar
   estado_activo: en línea

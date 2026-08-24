@@ -52,24 +52,25 @@ function goTo(view, onNavigate) {
 }
 
 function Header({ view, onNavigate, onLogout }) {
-  if (view === "login") return <header className="site-header auth-header"><Brand onHome={() => {}} /><span className="nav-context">ACCESO ADMINISTRATIVO / LOCAL</span></header>;
+  if (view === "login") return <header className="site-header auth-header"><Brand onHome={() => goTo("sales", onNavigate)} /><span className="nav-context">{copy.login.contexto}</span><button className="header-action" onClick={() => goTo("sales", onNavigate)}>{copy.nav.ver_ventas}</button></header>;
   if (view === "sales") return <><header className="site-header"><Brand onHome={() => goTo("sales", onNavigate)} /><span className="nav-context">SOMA / VENTAS</span><button className="header-action" onClick={() => goTo("login", onNavigate)}>Acceso admin ↗</button></header><RemodelSimulator /></>;
   return <header className="site-header"><Brand onHome={() => goTo("sales", onNavigate)} /><span className="nav-context">SOMA / CONTROL ROOM</span><div className="header-actions"><button className="header-sales" onClick={() => goTo("sales", onNavigate)}>Ver ventas ↗</button><button className="header-action" onClick={onLogout}>Cerrar sesión</button></div></header>;
 }
 
 function AdminLogin({ onLogin }) {
+  const c = copy.login;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   async function login(event) {
     event.preventDefault();
-    setMessage("Validando acceso...");
+    setMessage(c.validando);
     try {
       const data = await request("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
       onLogin(data.token);
     } catch (error) { setMessage(error.message); }
   }
-  return <main className="login-shell"><div className="login-rail"><span className="eyebrow">SOMA / CONTROL ROOM</span><h1>Del insumo<br />al <em>criterio.</em></h1><p>Un precio unitario bien armado sostiene una decisión de obra. Entra para ordenar el catálogo, construir tus APUs y proyectar el cronograma.</p><div className="login-sequence"><span><b>01</b>Normalizar</span><span><b>02</b>Costear</span><span><b>03</b>Proyectar</span></div></div><form className="login-card" onSubmit={login}><div className="login-card-mark"><img src={mark} alt="" /></div><span className="eyebrow">ÁREA RESTRINGIDA</span><h2>Iniciar sesión</h2><p>El catálogo de insumos, los APUs y el simulador están protegidos.</p><label>Usuario<input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" required /></label><label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required /></label><button className="button button-dark wide" type="submit">Entrar al control room ↗</button>{message && <small className="login-message" role="status">{message}</small>}<small className="login-note">La contraseña se valida contra el hash almacenado en SQLite.</small></form></main>;
+  return <main className="login-shell"><div className="login-rail"><span className="eyebrow">{c.eyebrow}</span><h1>{c.titulo_linea1}<br />{c.titulo_linea2} <em>{c.titulo_enfasis}</em></h1><p>{c.descripcion}</p><div className="login-sequence">{c.secuencia.map((paso) => <span key={paso.paso}><b>{paso.paso}</b>{paso.nombre}</span>)}</div></div><form className="login-card" onSubmit={login}><div className="login-card-mark"><img src={mark} alt="" /></div><span className="eyebrow">{c.area}</span><h2>{c.encabezado}</h2><p>{c.ayuda}</p><label>{c.campo_usuario}<input value={username} onChange={(event) => setUsername(event.target.value)} autoComplete="username" required /></label><label>{c.campo_password}<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required /></label><button className="button button-dark wide" type="submit">{c.boton}</button>{message && <small className="login-message" role="status">{message}</small>}<small className="login-note">{c.nota}</small></form></main>;
 }
 
 function DashboardNav({ view, onNavigate }) {
@@ -208,9 +209,10 @@ function AdvisorWidget({ token }) {
       if (buffer.trim()) handleEvent(buffer);
     } catch (error) { const detail = error.message || "No se pudo conectar con el backend."; setChatError(detail); setMessages((current) => current.map((item, index) => index === assistantIndex ? { ...item, content: `${c.error_prefijo} ${detail}` } : item)); } finally { setBusy(false); }
   }
-  if (!open) return <button className="advisor-bubble" onClick={() => setOpen(true)} aria-label={c.burbuja_abrir}><span className="advisor-bubble-dot" />{c.burbuja_abrir}</button>;
+  function reset() { setMessages([{ role: "assistant", content: c.bienvenida }]); setPlan(null); setChatError(""); setInput(""); }
+  if (!open) return <button className="advisor-bubble" onClick={() => setOpen(true)} aria-label={c.burbuja_abrir}><svg className="advisor-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.3 8.9 8.9 0 0 1-3.8-.8L3 21l1.9-5.4a8 8 0 0 1-1-3.9A8.4 8.4 0 0 1 12.4 3 8.4 8.4 0 0 1 21 11.5Z" /></svg>{c.burbuja_abrir}</button>;
   return <aside className="advisor-panel" role="dialog" aria-label={c.titulo}>
-    <header className="advisor-head"><div><strong>{c.titulo}</strong><small>{c.subtitulo}</small></div><span className={busy ? "advisor-state busy" : "advisor-state"}>{busy ? c.estado_ocupado : c.estado_activo}</span><button className="advisor-close" onClick={() => setOpen(false)} aria-label={c.burbuja_cerrar}>×</button></header>
+    <header className="advisor-head"><div><strong>{c.titulo}</strong><small>{c.subtitulo}</small></div><span className={busy ? "advisor-state busy" : "advisor-state"}>{busy ? c.estado_ocupado : c.estado_activo}</span><button className="advisor-reset" onClick={reset} disabled={busy || messages.length <= 1} title={c.reiniciar} aria-label={c.reiniciar}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 1-2.3-5.6M20 4v5h-5" /></svg></button><button className="advisor-close" onClick={() => setOpen(false)} aria-label={c.burbuja_cerrar}>×</button></header>
     <div className="advisor-thread" ref={threadRef}>{messages.map((message, index) => <div className={`chat-bubble ${message.role}`} key={`${message.role}-${index}`}>{message.content || <span className="typing">···</span>}</div>)}<PlanCard plan={plan} /></div>
     {messages.length <= 1 && <div className="advisor-suggestions">{c.sugerencias.map((s) => <button key={s} onClick={() => send(s)}>{s}</button>)}</div>}
     <form className="advisor-composer" onSubmit={(event) => { event.preventDefault(); send(); }}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder={c.placeholder} aria-label={c.placeholder} /><button className="button button-dark" disabled={busy}>{c.enviar}</button></form>
