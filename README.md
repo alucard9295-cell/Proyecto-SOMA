@@ -7,8 +7,13 @@ deployable FastAPI API under `api/`.
 ## Features
 
 - Public commercial experience at `/ventas` and `/soma`.
-- Administrative login, financial dashboard and invoice pipeline.
-- Chroma/RAG queries and architectural assistant streaming through FastAPI.
+- Administrative login and an empty operational summary placeholder.
+- Remodeling simulator and architectural assistant streaming through FastAPI.
+- Future document processing, semantic retrieval and spreadsheet reports are not
+  exposed by the current UI or API scope.
+
+The operational summary currently returns zero values and is not populated with
+real SQLite document data. Document ingestion is not implemented.
 
 ## Local development
 
@@ -51,9 +56,9 @@ AGENT_MODEL=deepseek-v4-pro
 ```
 
 The frontend never receives `AGENT_API_KEY`. Without a key, the API uses a
-deterministic fallback so the sales flow can still be tested. `MCP_ENABLED` is
-off by default; when enabled, the backend may consume the configured LangChain
-documentation MCP through `langchain-mcp-adapters`.
+deterministic fallback so the sales flow can still be tested. `MCP_ENABLED=false`
+is the default. Enabling MCP also requires an explicit comma-separated
+`MCP_ALLOWED_TOOLS` list; tools that are not listed or that can write are ignored.
 
 ## Production build
 
