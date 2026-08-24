@@ -15,6 +15,9 @@ class Settings:
     agent_require_auth: bool
     mcp_enabled: bool
     mcp_langchain_docs_url: str
+    mcp_allowed_tools: tuple[str, ...] = ()
+    mcp_timeout_seconds: float = 10.0
+    mcp_max_output_chars: int = 12000
 
 
 def load_settings() -> Settings:
@@ -29,6 +32,21 @@ def load_settings() -> Settings:
     secret = os.getenv("JWT_SECRET", "local-development-only-change-me")
     if environment == "production" and secret == "local-development-only-change-me":
         raise RuntimeError("JWT_SECRET must be configured in production")
+    allowed_tools = tuple(
+        tool.strip()
+        for tool in os.getenv("MCP_ALLOWED_TOOLS", "").split(",")
+        if tool.strip()
+    )
+    try:
+        mcp_timeout_seconds = max(0.1, float(os.getenv("MCP_TIMEOUT_SECONDS", "10")))
+    except ValueError:
+        mcp_timeout_seconds = 10.0
+    try:
+        mcp_max_output_chars = max(
+            256, int(os.getenv("MCP_MAX_OUTPUT_CHARS", "12000"))
+        )
+    except ValueError:
+        mcp_max_output_chars = 12000
     return Settings(
         database_path=os.getenv("DATABASE_PATH", "data/soma.sqlite3"),
         jwt_secret=secret,
@@ -49,4 +67,7 @@ def load_settings() -> Settings:
         mcp_langchain_docs_url=os.getenv(
             "MCP_LANGCHAIN_DOCS_URL", "https://docs.langchain.com/mcp"
         ),
+        mcp_allowed_tools=allowed_tools,
+        mcp_timeout_seconds=mcp_timeout_seconds,
+        mcp_max_output_chars=mcp_max_output_chars,
     )

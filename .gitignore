@@ -21,3 +21,6 @@ api/.pytest_cache/
 api/dist/
 api/**/__pycache__/
 *.pyc
+
+# Graphify knowledge graph (generated tool output, not app code)
+graphify-out/

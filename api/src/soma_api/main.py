@@ -1,18 +1,24 @@
 from contextlib import asynccontextmanager
+import logging
+from uuid import uuid4
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from .agent import ArchitectureAgent
 from .config import load_settings
-from .database import init_db
+from .database import database_ready, init_db
 from .routes.auth import router as auth_router
 from .routes.summary import router as summary_router
 from .routes.agent import router as agent_router
 from .routes.simulation import router as simulation_router
+
+
+logger = logging.getLogger(__name__)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -41,14 +47,35 @@ class RequestSizeMiddleware(BaseHTTPMiddleware):
             too_large = True
         if too_large:
             return JSONResponse(
-                {"detail": "Solicitud demasiado grande"}, status_code=413
+                {
+                    "detail": "Solicitud demasiado grande",
+                    "request_id": request.state.request_id,
+                },
+                status_code=413,
             )
         return await call_next(request)
+
+
+class RequestIdMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        request_id = str(uuid4())
+        request.state.request_id = request_id
+        try:
+            response = await call_next(request)
+        except Exception:
+            logger.exception("Unhandled request error", extra={"request_id": request_id})
+            response = JSONResponse(
+                {"detail": "Error interno del servidor", "request_id": request_id},
+                status_code=500,
+            )
+        response.headers["X-Request-ID"] = request_id
+        return response
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings = load_settings()
+    app.state.settings = settings
     init_db(settings.database_path)
     await app.state.agent.initialize()
     yield
@@ -65,9 +92,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
+app.add_middleware(RequestIdMiddleware)
 app.include_router(auth_router)
 app.include_router(summary_router)
 app.include_router(agent_router)
@@ -77,3 +105,31 @@ app.include_router(simulation_router)
 @app.get("/health", tags=["system"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/ready", tags=["system"])
+def ready(request: Request):
+    if not database_ready(request.app.state.settings.database_path):
+        raise HTTPException(status_code=503, detail="Base de datos no disponible")
+    return {"status": "ready"}
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        {"detail": exc.detail, "request_id": request.state.request_id},
+        status_code=exc.status_code,
+        headers=exc.headers,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = [
+        {"loc": error.get("loc"), "msg": error.get("msg"), "type": error.get("type")}
+        for error in exc.errors()
+    ]
+    return JSONResponse(
+        {"detail": errors, "request_id": request.state.request_id},
+        status_code=422,
+    )

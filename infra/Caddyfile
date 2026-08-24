@@ -1,7 +1,7 @@
 :80 {
     encode gzip
 
-    @api path /api/* /health
+    @api path /api/* /health /ready
     reverse_proxy @api api:8000 {
         # Do not buffer LangGraph token events behind the proxy.
         flush_interval -1
