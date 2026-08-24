@@ -6,14 +6,15 @@ deployable FastAPI API under `api/`.
 
 ## Features
 
-- Public commercial experience at `/ventas` and `/soma`.
-- Administrative login and an empty operational summary placeholder.
-- Remodeling simulator and architectural assistant streaming through FastAPI.
-- Future document processing, semantic retrieval and spreadsheet reports are not
-  exposed by the current UI or API scope.
-
-The operational summary currently returns zero values and is not populated with
-real SQLite document data. Document ingestion is not implemented.
+- Public commercial experience at `/ventas` and `/soma`, with a live
+  architectural assistant streaming through FastAPI.
+- Administrative control room: invoice pipeline (PDF/ZIP/XML), operational
+  summary, and a Chroma-backed RAG assistant.
+- Construction control plane: normalized supply catalog, APU (unit cost)
+  builder, and a project simulator that schedules partidas by yield/day.
+- Versioned SQLite migrations (`api/src/soma_api/migrations.py`) with a
+  repository layer as the only path to the database — no ad-hoc schema
+  strings.
 
 ## Local development
 
@@ -75,6 +76,50 @@ SQLite database.
 For local Docker, Caddy exposes the API at `http://127.0.0.1:8000` and keeps the
 FastAPI container private. In production, replace the local Caddy address with a
 real domain so the proxy terminates HTTPS and preserves SSE streaming.
+
+### Deploying: backend on Railway, frontend on Vercel
+
+CLIs (installed once, globally):
+
+```powershell
+npm i -g @railway/cli vercel
+```
+
+**Backend (Railway)** — run from the repository root:
+
+```powershell
+railway login
+railway init                     # or: railway link, to attach an existing project
+railway volume create --mount-path /app/data   # persistent SQLite storage
+```
+
+In the Railway project settings, set **Root Directory** to `api` (the service
+builds from `api/Dockerfile`). Then set these environment variables on the
+Railway service (mirrors `api/.env.example`):
+
+```text
+ENVIRONMENT=production
+JWT_SECRET=<generate a long random secret>
+DATABASE_PATH=/app/data/soma.sqlite3
+CORS_ORIGINS=https://<your-vercel-domain>
+ALLOWED_HOSTS=<your-railway-domain>
+```
+
+Deploy with `railway up`, then seed the admin account once against the deployed
+service (`railway run python -m soma_api.bootstrap_admin --username ... --password ...`
+from within `api/`, never by putting a password in config).
+
+**Frontend (Vercel)** — run from the repository root:
+
+```powershell
+vercel login
+vercel link
+vercel env add VITE_API_BASE production   # paste the Railway backend URL
+vercel --prod
+```
+
+`VITE_API_BASE` is the only variable Vercel should ever receive — keep secrets,
+the database path and provider credentials on the Railway side.
 
 ## Security
 
