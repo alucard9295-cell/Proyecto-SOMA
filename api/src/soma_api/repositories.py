@@ -70,6 +70,201 @@ class AuditRepository:
             )
 
 
+class SupplyRepository:
+    def __init__(self, database_path: str):
+        self.database_path = database_path
+
+    def search(self, search: str, category: str) -> list[sqlite3.Row]:
+        with connect(self.database_path) as connection:
+            filters = []
+            params: list[str] = []
+            if search.strip():
+                filters.append("lower(i.nombre_normalizado) LIKE ?")
+                params.append(f"%{search.strip().lower()}%")
+            if category:
+                filters.append("i.categoria=?")
+                params.append(category)
+            where = f"WHERE {' AND '.join(filters)}" if filters else ""
+            return connection.execute(
+                f"""SELECT i.insumo_id, i.nombre_normalizado, i.categoria, i.unidad_estandar,
+                           COALESCE(AVG(fi.valor_unitario), 0) AS price_average,
+                           MIN(fi.valor_unitario) AS price_min, MAX(fi.valor_unitario) AS price_max,
+                           COUNT(fi.item_id) AS purchase_count, MAX(f.fecha_factura) AS last_purchase
+                      FROM insumos_maestros i LEFT JOIN factura_items fi ON fi.insumo_id=i.insumo_id
+                      LEFT JOIN facturas f ON f.factura_id=fi.factura_id {where}
+                     GROUP BY i.insumo_id ORDER BY i.nombre_normalizado""",
+                params,
+            ).fetchall()
+
+    def exists(self, supply_id: int) -> bool:
+        with connect(self.database_path) as connection:
+            return (
+                connection.execute(
+                    "SELECT 1 FROM insumos_maestros WHERE insumo_id=?", (supply_id,)
+                ).fetchone()
+                is not None
+            )
+
+    def update(
+        self, supply_id: int, nombre_normalizado: str, categoria: str, unidad_estandar: str | None
+    ) -> None:
+        with connect(self.database_path) as connection:
+            connection.execute(
+                "UPDATE insumos_maestros SET nombre_normalizado=?, categoria=?, unidad_estandar=? WHERE insumo_id=?",
+                (nombre_normalizado, categoria, unidad_estandar, supply_id),
+            )
+
+
+class ApuRepository:
+    def __init__(self, database_path: str):
+        self.database_path = database_path
+
+    def list_ids(self) -> list[int]:
+        with connect(self.database_path) as connection:
+            return [
+                row["apu_id"]
+                for row in connection.execute(
+                    "SELECT apu_id FROM apus ORDER BY apu_id DESC"
+                ).fetchall()
+            ]
+
+    def get(self, apu_id: int) -> sqlite3.Row | None:
+        with connect(self.database_path) as connection:
+            return connection.execute(
+                "SELECT * FROM apus WHERE apu_id=?", (apu_id,)
+            ).fetchone()
+
+    def get_details(self, apu_id: int) -> list[sqlite3.Row]:
+        with connect(self.database_path) as connection:
+            return connection.execute(
+                """SELECT ad.*, i.nombre_normalizado, i.unidad_estandar,
+                          COALESCE(AVG(fi.valor_unitario), 0) AS precio_catalogo
+                     FROM apu_detalle ad JOIN insumos_maestros i ON i.insumo_id=ad.insumo_id
+                     LEFT JOIN factura_items fi ON fi.insumo_id=i.insumo_id
+                    WHERE ad.apu_id=? GROUP BY ad.detalle_id ORDER BY ad.detalle_id""",
+                (apu_id,),
+            ).fetchall()
+
+    def save(
+        self,
+        *,
+        apu_id: int | None,
+        values: tuple,
+        details: list[tuple],
+    ) -> int | None:
+        """Insert or update an APU and its details atomically. Returns None when
+        apu_id was given but no matching row exists."""
+        with connect(self.database_path) as connection:
+            if apu_id is None:
+                cursor = connection.execute(
+                    """INSERT INTO apus
+                        (nombre_partida, unidad, descripcion, categoria, administracion_pct,
+                         imprevistos_pct, utilidad_pct, iva_pct, iva_base)
+                       VALUES (?,?,?,?,?,?,?,?,?)""",
+                    values,
+                )
+                apu_id = cursor.lastrowid
+            else:
+                if not connection.execute(
+                    "SELECT 1 FROM apus WHERE apu_id=?", (apu_id,)
+                ).fetchone():
+                    return None
+                connection.execute(
+                    """UPDATE apus SET nombre_partida=?, unidad=?, descripcion=?, categoria=?,
+                        administracion_pct=?, imprevistos_pct=?, utilidad_pct=?, iva_pct=?, iva_base=?
+                       WHERE apu_id=?""",
+                    (*values, apu_id),
+                )
+                connection.execute("DELETE FROM apu_detalle WHERE apu_id=?", (apu_id,))
+            connection.executemany(
+                """INSERT INTO apu_detalle
+                    (apu_id, insumo_id, categoria, rendimiento, desperdicio_pct, precio_unitario)
+                   VALUES (?,?,?,?,?,?)""",
+                [(apu_id, *detail) for detail in details],
+            )
+            return apu_id
+
+
+class ProjectRepository:
+    def __init__(self, database_path: str):
+        self.database_path = database_path
+
+    def exists(self, project_id: int) -> bool:
+        with connect(self.database_path) as connection:
+            return (
+                connection.execute(
+                    "SELECT 1 FROM proyectos WHERE proyecto_id=?", (project_id,)
+                ).fetchone()
+                is not None
+            )
+
+    def get(self, project_id: int) -> sqlite3.Row | None:
+        with connect(self.database_path) as connection:
+            return connection.execute(
+                "SELECT * FROM proyectos WHERE proyecto_id=?", (project_id,)
+            ).fetchone()
+
+    def get_partidas(self, project_id: int) -> list[sqlite3.Row]:
+        with connect(self.database_path) as connection:
+            return connection.execute(
+                """SELECT pp.*, a.nombre_partida, a.unidad
+                     FROM proyecto_partidas pp JOIN apus a ON a.apu_id=pp.apu_id
+                    WHERE pp.proyecto_id=? ORDER BY pp.orden, pp.partida_id""",
+                (project_id,),
+            ).fetchall()
+
+    def list_ids(self) -> list[int]:
+        with connect(self.database_path) as connection:
+            return [
+                row["proyecto_id"]
+                for row in connection.execute(
+                    "SELECT proyecto_id FROM proyectos ORDER BY proyecto_id DESC"
+                ).fetchall()
+            ]
+
+    def insert(
+        self, nombre: str, cliente: str | None, ubicacion: str | None, fecha_inicio: str
+    ) -> int:
+        with connect(self.database_path) as connection:
+            cursor = connection.execute(
+                "INSERT INTO proyectos (nombre, cliente, ubicacion, fecha_inicio) VALUES (?,?,?,?)",
+                (nombre, cliente, ubicacion, fecha_inicio),
+            )
+            return cursor.lastrowid
+
+    def insert_partida(
+        self,
+        *,
+        project_id: int,
+        fase: str,
+        apu_id: int,
+        cantidad: float,
+        rendimiento_diario: float,
+        orden: int,
+        costo_unitario: float,
+        costo_total: float,
+        duracion_dias: int,
+    ) -> None:
+        with connect(self.database_path) as connection:
+            connection.execute(
+                """INSERT INTO proyecto_partidas
+                    (proyecto_id, fase, apu_id, cantidad, rendimiento_diario, orden,
+                     costo_unitario, costo_total, duracion_dias)
+                   VALUES (?,?,?,?,?,?,?,?,?)""",
+                (
+                    project_id,
+                    fase,
+                    apu_id,
+                    cantidad,
+                    rendimiento_diario,
+                    orden,
+                    costo_unitario,
+                    costo_total,
+                    duracion_dias,
+                ),
+            )
+
+
 SENSITIVE_DETAIL_KEY_PARTS = {
     "api_key",
     "apikey",

@@ -1,6 +1,7 @@
 import sqlite3
 
 from soma_api.database import init_db
+from soma_api.migrations import MIGRATIONS
 
 
 def test_migrations_are_idempotent_and_preserve_existing_users(tmp_path):
@@ -33,4 +34,4 @@ def test_migrations_are_idempotent_and_preserve_existing_users(tmp_path):
         ).fetchone() == ("audit_events",)
         assert connection.execute(
             "SELECT version FROM schema_migrations ORDER BY version"
-        ).fetchall() == [(1,), (2,)]
+        ).fetchall() == [(version,) for version, _, _ in MIGRATIONS]
