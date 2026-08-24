@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import copy from "./content/site.yaml";
 import ApuEditor from "./ApuEditor.jsx";
 import ProjectSimulator from "./ProjectSimulator.jsx";
 import mark from "./assets/soma-mark.svg";
@@ -20,19 +21,19 @@ const money = (value) => new Intl.NumberFormat("es-CO", { style: "currency", cur
 const number = (value) => new Intl.NumberFormat("es-CO", { maximumFractionDigits: 0 }).format(value || 0);
 
 function RemodelSimulator() {
+  const c = copy.ventas.simulador;
   const [form, setForm] = useState({ area_m2: 120, units: 2, tier: "standard", acquisition_cost: 0, monthly_rent_per_unit: 0, monthly_operating_expenses: 0 });
   const [result, setResult] = useState(null); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   function change(event) { setForm((current) => ({ ...current, [event.target.name]: event.target.value })); }
   async function calculate(event) {
     event.preventDefault(); setBusy(true); setError("");
     try {
-      const data = await request("/api/sales/simulation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, area_m2: Number(form.area_m2), units: Number(form.units), acquisition_cost: Number(form.acquisition_cost), monthly_rent_per_unit: Number(form.monthly_rent_per_unit), monthly_operating_expenses: Number(form.monthly_operating_expenses) }) });
-      setResult(data);
+      setResult(await request("/api/sales/simulation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, area_m2: Number(form.area_m2), units: Number(form.units), acquisition_cost: Number(form.acquisition_cost), monthly_rent_per_unit: Number(form.monthly_rent_per_unit), monthly_operating_expenses: Number(form.monthly_operating_expenses) }) }));
     } catch (requestError) { setError(requestError.message); } finally { setBusy(false); }
   }
   const roi = result?.returns?.annual_roi_pct == null ? "—" : `${result.returns.annual_roi_pct}%`;
   const payback = result?.returns?.payback_years == null ? "—" : `${result.returns.payback_years} años`;
-  return <section className="sales-simulator"><div className="simulator-copy"><span className="eyebrow">SOMA / PRIMERA CUENTA</span><h2>¿Qué podría sostener<br /><em>la transformación?</em></h2><p>Una simulación rápida para comparar área, unidades, costo de obra y renta. No es un avalúo ni una promesa de rentabilidad: es el punto de partida para hacer mejores preguntas.</p><small>Los costos por m² y porcentajes viven en `api/src/soma_api/data/remodeling.yml`.</small></div><form className="simulator-form" onSubmit={calculate}><label>Área a intervenir (m²)<input name="area_m2" type="number" min="1" max="100000" value={form.area_m2} onChange={change} required /></label><label>Unidades<select name="units" value={form.units} onChange={change}><option value="1">1 unidad</option><option value="2">2 unidades</option><option value="3">3 unidades</option><option value="4">4 unidades</option><option value="6">6 unidades</option></select></label><label>Calidad de obra<select name="tier" value={form.tier} onChange={change}><option value="basic">Base</option><option value="standard">Estándar</option><option value="premium">Alta</option></select></label><label>Compra del inmueble (COP)<input name="acquisition_cost" type="number" min="0" step="1000000" value={form.acquisition_cost} onChange={change} /></label><label>Renta mensual por unidad (COP)<input name="monthly_rent_per_unit" type="number" min="0" step="50000" value={form.monthly_rent_per_unit} onChange={change} /></label><label>Gastos mensuales (COP)<input name="monthly_operating_expenses" type="number" min="0" step="50000" value={form.monthly_operating_expenses} onChange={change} /></label><button className="button button-dark" disabled={busy}>{busy ? "Calculando…" : "Ver escenario ↗"}</button>{error && <small className="simulator-error" role="status">{error}</small>}</form><div className="simulator-result"><span className="eyebrow">ESCENARIO PRELIMINAR</span><div className="simulator-kpis"><div><small>Inversión total</small><strong>{result ? money(result.investment.total) : "—"}</strong></div><div><small>Flujo neto anual</small><strong>{result ? money(result.income.net_annual) : "—"}</strong></div><div><small>ROI anual</small><strong>{roi}</strong></div><div><small>Payback</small><strong>{payback}</strong></div></div>{result && <small className="simulator-note">{result.assumptions.note} Ocupación asumida: {Math.round(result.income.occupancy_rate * 100)}%.</small>}</div></section>;
+  return <section className="sales-simulator"><div className="simulator-copy"><span className="eyebrow">{c.eyebrow}</span><h2>{c.titulo_linea1}<br /><em>{c.titulo_enfasis}</em></h2><p>{c.descripcion}</p></div><form className="simulator-form" onSubmit={calculate}><label>{c.campos.area}<input name="area_m2" type="number" min="1" max="100000" value={form.area_m2} onChange={change} required /></label><label>{c.campos.unidades}<select name="units" value={form.units} onChange={change}><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="6">6</option></select></label><label>{c.campos.calidad}<select name="tier" value={form.tier} onChange={change}><option value="basic">Base</option><option value="standard">Estándar</option><option value="premium">Alta</option></select></label><label>{c.campos.compra}<input name="acquisition_cost" type="number" min="0" step="1000000" value={form.acquisition_cost} onChange={change} /></label><label>{c.campos.renta}<input name="monthly_rent_per_unit" type="number" min="0" step="50000" value={form.monthly_rent_per_unit} onChange={change} /></label><label>{c.campos.gastos}<input name="monthly_operating_expenses" type="number" min="0" step="50000" value={form.monthly_operating_expenses} onChange={change} /></label><button className="button button-dark" disabled={busy}>{busy ? c.calculando : c.boton}</button>{error && <small className="simulator-error" role="status">{error}</small>}</form><div className="sales-result"><span className="eyebrow">{c.resultado_eyebrow}</span><div className="sales-kpis"><div><small>{c.kpis.inversion}</small><strong>{result ? money(result.investment.total) : "—"}</strong></div><div><small>{c.kpis.flujo}</small><strong>{result ? money(result.income.net_annual) : "—"}</strong></div><div><small>{c.kpis.roi}</small><strong>{roi}</strong></div><div><small>{c.kpis.payback}</small><strong>{payback}</strong></div></div>{result?.assumptions?.note && <small className="simulator-note">{result.assumptions.note}</small>}</div></section>;
 }
 
 function Brand({ onHome }) {
@@ -41,7 +42,12 @@ function Brand({ onHome }) {
 
 function goTo(view, onNavigate) {
   if (view === "sales") window.history.pushState({}, "", "/ventas");
-  if (view === "login") window.history.pushState({}, "", "/");
+  if (view === "login") {
+    window.history.pushState({}, "", "/");
+    // Si la sesion sigue viva, volver del sitio publico no debe pedir login
+    // otra vez: se entra directo al control room.
+    if (sessionStorage.getItem("atlas_admin_token")) { onNavigate("dashboard"); return; }
+  }
   onNavigate(view);
 }
 
@@ -181,10 +187,13 @@ function PlanCard({ plan }) {
   return <article className="plan-card"><div className="plan-card-head"><span className="eyebrow">PLAN ESTRUCTURADO / AG-UI</span><span className="plan-badge">BORRADOR</span></div><h3>{plan.title}</h3><p>{plan.summary}</p><div className="plan-inputs"><span><b>{plan.inputs?.area_m2}</b> m²</span><span><b>{plan.inputs?.units}</b> unidades</span><span><b>{plan.inputs?.budget}</b> presupuesto</span></div><div className="plan-phases">{plan.phases?.map((phase, index) => <div className="plan-phase" key={phase.name}><span>0{index + 1}</span><div><b>{phase.name}</b><small>{phase.duration} · {phase.share}</small><p>{phase.deliverable}</p></div></div>)}</div><div className="plan-columns"><div><b>PRÓXIMOS PASOS</b><ul>{plan.next_steps?.map((step) => <li key={step}>{step}</li>)}</ul></div><div><b>RIESGOS A VALIDAR</b><ul>{plan.risks?.map((risk) => <li key={risk}>{risk}</li>)}</ul></div></div><small className="plan-note">{plan.budget?.note}</small></article>;
 }
 
-function SalesChat({ token, publicMode = false }) {
-  const [messages, setMessages] = useState([{ role: "assistant", content: "Soy el asesor de SOMA. Cuéntame qué casa tienes o qué tipo de vivienda multifamiliar quieres estudiar." }]);
+function AdvisorWidget({ token }) {
+  const c = copy.asesor;
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([{ role: "assistant", content: c.bienvenida }]);
   const [plan, setPlan] = useState(null); const [input, setInput] = useState(""); const [busy, setBusy] = useState(false); const [chatError, setChatError] = useState("");
-  const suggestions = publicMode ? ["Quiero convertir una casa de 180 m² en 3 apartamentos", "¿Cómo se arma el presupuesto de una remodelación?", "Tengo una casa y quiero estudiar su potencial"] : ["Quiero convertir una casa de 180 m² en 3 apartamentos", "¿Cómo se arma el presupuesto de una remodelación?", "¿Qué proveedor concentra el gasto de las facturas?"];
+  const threadRef = useRef(null);
+  useEffect(() => { if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight; }, [messages, open]);
   async function send(text = input) {
     const message = text.trim(); if (!message || busy) return;
     const history = [...messages, { role: "user", content: message }]; const assistantIndex = history.length;
@@ -197,17 +206,27 @@ function SalesChat({ token, publicMode = false }) {
       const handleEvent = (rawEvent) => { const dataLine = rawEvent.split("\n").find((line) => line.startsWith("data:")); if (!dataLine) return; const event = JSON.parse(dataLine.slice(5).trim()); if (event.type === "TEXT_MESSAGE_CONTENT") setMessages((current) => current.map((item, index) => index === assistantIndex ? { ...item, content: `${item.content}${event.delta || ""}` } : item)); if (event.type === "CUSTOM" && event.name === "architecture_plan") setPlan(event.value); if (event.type === "RUN_ERROR") throw new Error(event.message || "El asesor no devolvió una respuesta."); };
       while (true) { const { value, done } = await reader.read(); buffer += decoder.decode(value || new Uint8Array(), { stream: !done }); const events = buffer.split("\n\n"); buffer = events.pop() || ""; events.filter(Boolean).forEach(handleEvent); if (done) break; }
       if (buffer.trim()) handleEvent(buffer);
-    } catch (error) { const detail = error.message || "No se pudo conectar con el backend."; setChatError(detail); setMessages((current) => current.map((item, index) => index === assistantIndex ? { ...item, content: `No pude completar la asesoría: ${detail}` } : item)); } finally { setBusy(false); }
+    } catch (error) { const detail = error.message || "No se pudo conectar con el backend."; setChatError(detail); setMessages((current) => current.map((item, index) => index === assistantIndex ? { ...item, content: `${c.error_prefijo} ${detail}` } : item)); } finally { setBusy(false); }
   }
-  return <div className="sales-chat"><div className="chat-head"><div><span className="eyebrow">SOMA / {publicMode ? "IA EN VIVO" : "IA + RAG"}</span><h3>{publicMode ? "Planifica con un asesor" : "Preguntar antes de decidir"}</h3></div><span className={busy ? "chat-live busy" : "chat-live"}>{busy ? "analizando" : "en línea"}</span></div><p className="chat-context-note">{publicMode ? "Una primera orientación para entender si tu inmueble merece un estudio." : "El asesor combina tu pregunta arquitectónica con el contexto de facturas que vive en Chroma."}</p><div className="chat-suggestions">{suggestions.map((suggestion) => <button key={suggestion} onClick={() => send(suggestion)}>{suggestion}</button>)}</div><div className="chat-thread">{messages.map((message, index) => { const welcome = index === 0 && message.role === "assistant"; return <div className={`chat-bubble ${message.role}${welcome ? " welcome-message" : ""}`} key={`${message.role}-${index}`}>{welcome && <span className="chat-bubble-label">ASESOR SOMA / IA</span>}{message.content || <span className="typing">···</span>}</div>; })}</div><form className="chat-composer" onSubmit={(event) => { event.preventDefault(); send(); }}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Pregunta por costos, proveedores o arquitectura..." /><button className="button button-dark" disabled={busy}>Enviar ↗</button></form>{chatError && <small className="chat-debug" role="status">DEBUG / {chatError}</small>}<PlanCard plan={plan} /></div>;
+  if (!open) return <button className="advisor-bubble" onClick={() => setOpen(true)} aria-label={c.burbuja_abrir}><span className="advisor-bubble-dot" />{c.burbuja_abrir}</button>;
+  return <aside className="advisor-panel" role="dialog" aria-label={c.titulo}>
+    <header className="advisor-head"><div><strong>{c.titulo}</strong><small>{c.subtitulo}</small></div><span className={busy ? "advisor-state busy" : "advisor-state"}>{busy ? c.estado_ocupado : c.estado_activo}</span><button className="advisor-close" onClick={() => setOpen(false)} aria-label={c.burbuja_cerrar}>×</button></header>
+    <div className="advisor-thread" ref={threadRef}>{messages.map((message, index) => <div className={`chat-bubble ${message.role}`} key={`${message.role}-${index}`}>{message.content || <span className="typing">···</span>}</div>)}<PlanCard plan={plan} /></div>
+    {messages.length <= 1 && <div className="advisor-suggestions">{c.sugerencias.map((s) => <button key={s} onClick={() => send(s)}>{s}</button>)}</div>}
+    <form className="advisor-composer" onSubmit={(event) => { event.preventDefault(); send(); }}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder={c.placeholder} aria-label={c.placeholder} /><button className="button button-dark" disabled={busy}>{c.enviar}</button></form>
+    {chatError && <small className="advisor-error" role="status">{chatError}</small>}
+  </aside>;
 }
 
+
 function SalesPage() {
-  return <main className="sales-page"><div className="sales-background" style={{ backgroundImage: `url("${collectiveHousing}")` }} aria-hidden="true" /><section className="sales-hero"><div><span className="eyebrow">SOMA / VIVIENDA MULTIFAMILIAR</span><h1>Una casa.<br />Varias formas<br />de <em>vivirla.</em></h1><p>Antes de comprar o transformar, entiende el potencial del inmueble. SOMA ordena arquitectura, números y decisiones en una primera conversación.</p><div className="sales-proof"><span><b>01</b>Leer la casa</span><span><b>02</b>Proyectar escenarios</span><span><b>03</b>Decidir con criterio</span></div></div><div className="sales-visual"><div><span>SOMA / CASA 01</span><span>PRIMERA LECTURA</span></div><div className="sales-visual-house"><i /><i /><i /></div><small>Una casa existente también puede tener otra vida.</small></div></section><section className="sales-film"><video autoPlay muted loop playsInline preload="metadata" aria-label="Recorrido aéreo de un proyecto de vivienda"><source src={droneVideo} type="video/mp4" /></video><div className="film-caption"><span className="eyebrow">SOMA / CONTEXTO</span><strong>La idea no es ver el dron.<br />Es ver lo que puede llegar a ser.</strong></div></section><section className="sales-existing"><div><span className="eyebrow">FASE 1 / CASA EXISTENTE</span><h2>Lo que ya tienes<br /><em>también funciona.</em></h2><p>Antes de imaginar una transformación, leemos la base: estructura, distribución, iluminación, jardín y posibilidades reales de adaptación.</p></div><figure><img src={existingHouse} alt="Infografía de una casa unifamiliar existente y sus posibilidades de transformación" /><figcaption>Vista de lectura inicial · casa unifamiliar en Bogotá</figcaption></figure></section><section className="sales-chat-section"><div><span className="eyebrow">ASESORÍA EN TIEMPO REAL</span><h2>La primera conversación<br />antes de la primera obra.</h2><p>Cuéntale al asesor qué tienes, dónde está y qué quieres conseguir. La respuesta es preliminar, pero ayuda a formular la pregunta correcta.</p></div><SalesChat publicMode /></section><section className="sales-story"><span className="eyebrow">LA IDEA SOMA</span><h2>No vendemos metros.<br /><em>Vendemos posibilidades.</em></h2><p>Una transformación empieza con una lectura: ubicación, estructura, accesos, redes, norma y una pregunta honesta sobre lo que se puede sostener.</p></section></main>;
+  const c = copy.ventas;
+  return <main className="sales-page"><div className="sales-background" style={{ backgroundImage: `url("${collectiveHousing}")` }} aria-hidden="true" /><section className="sales-hero"><div><span className="eyebrow">{c.hero.eyebrow}</span><h1>{c.hero.titulo_linea1}<br />{c.hero.titulo_linea2}<br />{c.hero.titulo_linea3} <em>{c.hero.titulo_enfasis}</em></h1><p>{c.hero.descripcion}</p><div className="sales-proof">{c.hero.pasos.map((paso) => <span key={paso.paso}><b>{paso.paso}</b>{paso.nombre}</span>)}</div></div><div className="sales-visual"><div><span>SOMA / CASA 01</span><span>PRIMERA LECTURA</span></div><div className="sales-visual-house"><i /><i /><i /></div><small>Una casa existente también puede tener otra vida.</small></div></section><section className="sales-film"><video autoPlay muted loop playsInline preload="metadata" aria-label="Recorrido aéreo de un proyecto de vivienda"><source src={droneVideo} type="video/mp4" /></video><div className="film-caption"><span className="eyebrow">{c.film.eyebrow}</span><strong>{c.film.titulo_linea1}<br />{c.film.titulo_linea2}</strong></div></section><section className="sales-existing"><div><span className="eyebrow">{c.existente.eyebrow}</span><h2>{c.existente.titulo_linea1}<br /><em>{c.existente.titulo_enfasis}</em></h2><p>{c.existente.descripcion}</p></div><figure><img src={existingHouse} alt="Infografía de una casa unifamiliar existente y sus posibilidades de transformación" /><figcaption>{c.existente.pie}</figcaption></figure></section></main>;
 }
 
 function Guide() {
-  return <div className="panel-view module-view guide-view"><div className="module-heading"><span className="eyebrow">03 / ORIENTACIÓN</span><h1>Una guía para<br /><em>leer mejor.</em></h1><p>SOMA conecta tres momentos: importar el documento, construir memoria semántica y convertirla en una decisión que alguien pueda discutir.</p></div><div className="guide-grid"><article><span>01 / IMPORTAR</span><h2>Del PDF al registro</h2><p>En <b>Facturas</b> sube uno o varios documentos. Previsualiza primero para ver qué leyó el extractor. Usa “Procesar, guardar y actualizar RAG” cuando quieras llevar las cifras a SQLite.</p><small>Si un archivo falla, no se descarta en silencio: verás el nombre, el error, la información ausente y el siguiente paso.</small></article><article><span>02 / RECORDAR</span><h2>De registro a contexto</h2><p>Chroma guarda una representación semántica de las facturas. Sirve para encontrar documentos parecidos y responder preguntas como “¿qué proveedor concentra el gasto?”</p><small>SQLite conserva la fuente de verdad numérica; Chroma es la memoria para recuperar contexto.</small></article><article><span>03 / PREGUNTAR</span><h2>Del contexto al criterio</h2><p>En <b>Inteligencia</b> puedes consultar el índice local o pedir a DeepSeek que redacte una respuesta. El asesor arquitectónico usa el contexto disponible, pero declara supuestos y no inventa permisos ni rentabilidad.</p><small>Una buena pregunta incluye ciudad, área, unidades, objetivo y presupuesto aproximado.</small></article></div><div className="story-callout"><div><span className="eyebrow">LA SECUENCIA SOMA</span><h2>Un archivo no es una decisión.<br />La lectura es el puente.</h2></div><p>Primero vemos qué llegó. Después entendemos qué significa. Solo entonces tiene sentido decidir si conviene comprar, transformar, presupuestar o detenerse.</p></div></div>;
+  const c = copy.orientacion;
+  return <div className="panel-view module-view guide-view"><div className="module-heading"><span className="eyebrow">{c.eyebrow}</span><h1>{c.titulo_linea1}<br />{c.titulo_linea2} <em>{c.titulo_enfasis}</em></h1><p>{c.intro}</p></div><div className="guide-grid">{c.pasos.map((paso) => <article key={paso.eyebrow}><span>{paso.eyebrow}</span><h2>{paso.titulo}</h2><p>{paso.texto}</p><small>{paso.nota}</small></article>)}</div><div className="story-callout"><div><span className="eyebrow">{c.cierre_eyebrow}</span><h2>{c.cierre_titulo_linea1}<br />{c.cierre_titulo_linea2}</h2></div><p>{c.cierre_texto}</p></div></div>;
 }
 
 function ActivityLog({ log }) {
@@ -216,16 +235,29 @@ function ActivityLog({ log }) {
   return <div className="activity-log"><span className="eyebrow">ÚLTIMA ACTIVIDAD</span><p>{log.rag_index ? `Índice Chroma actualizado con ${log.rag_index.indexed || 0} documento(s).` : log.mode === "auto" ? `${log.results?.length || 0} documento(s) procesado(s) y auditado(s).` : "Operación completada."}</p><small>Los detalles completos quedan visibles en cada módulo.</small></div>;
 }
 
+// Deriva la vista desde la URL. Es la unica fuente de verdad de la navegacion,
+// para que el boton Atras del navegador y los botones de la app coincidan.
+function viewForPath(pathname, hasSession) {
+  if (pathname === "/ventas" || pathname === "/soma") return "sales";
+  return hasSession ? "dashboard" : "login";
+}
+
 function App() {
   const [token, setToken] = useState(sessionStorage.getItem("atlas_admin_token") || "");
-  const publicSales = window.location.pathname === "/ventas" || window.location.pathname === "/soma";
-  const [view, setView] = useState(publicSales ? "sales" : token ? "dashboard" : "login");
+  const [view, setView] = useState(() => viewForPath(window.location.pathname, Boolean(sessionStorage.getItem("atlas_admin_token"))));
   const [finance, setFinance] = useState(null); const [log, setLog] = useState(null);
   async function loadFinance(currentToken = token) { if (!currentToken) return; try { setFinance(await request("/api/admin/summary", { headers: { Authorization: `Bearer ${currentToken}` } })); } catch (error) { if (error.status === 401) { logout(); return; } setLog(`No se pudo cargar el dashboard: ${error.message}`); } }
-  function login(newToken) { setToken(newToken); sessionStorage.setItem("atlas_admin_token", newToken); setView("dashboard"); loadFinance(newToken); }
-  function logout() { setToken(""); sessionStorage.removeItem("atlas_admin_token"); setFinance(null); setView("login"); }
+  function login(newToken) { setToken(newToken); sessionStorage.setItem("atlas_admin_token", newToken); window.history.pushState({}, "", "/"); setView("dashboard"); loadFinance(newToken); }
+  function logout() { setToken(""); sessionStorage.removeItem("atlas_admin_token"); setFinance(null); window.history.pushState({}, "", "/"); setView("login"); }
   useEffect(() => { if (token) loadFinance(); }, []);
-  return <div className="app-shell"><Header view={view} onNavigate={setView} onLogout={logout} />{view === "login" ? <AdminLogin onLogin={login} /> : view === "sales" ? <SalesPage /> : <main className="workspace"><DashboardNav view={view} onNavigate={setView} /><section className="workspace-content">{view === "dashboard" && <Dashboard finance={finance} onNavigate={setView} />}{view === "supplies" && <Supplies token={token} />}{view === "apus" && <Apus token={token} />}{view === "simulator" && <ProjectSimulator token={token} />}{view === "guide" && <Guide />}<ActivityLog log={log} /></section></main>}</div>;
+  // Sin esto, Atras/Adelante cambian la URL pero no la vista: la app parece
+  // congelada. El estado del historial manda sobre el estado local.
+  useEffect(() => {
+    function onPopState() { setView(viewForPath(window.location.pathname, Boolean(sessionStorage.getItem("atlas_admin_token")))); }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+  return <div className="app-shell"><Header view={view} onNavigate={setView} onLogout={logout} />{view === "login" ? <AdminLogin onLogin={login} /> : view === "sales" ? <SalesPage /> : <main className="workspace"><DashboardNav view={view} onNavigate={setView} /><section className="workspace-content">{view === "dashboard" && <Dashboard finance={finance} onNavigate={setView} />}{view === "supplies" && <Supplies token={token} />}{view === "apus" && <Apus token={token} />}{view === "simulator" && <ProjectSimulator token={token} />}{view === "guide" && <Guide />}<ActivityLog log={log} /></section></main>}{view !== "login" && <AdvisorWidget token={token} />}</div>;
 }
 
 export default App;
