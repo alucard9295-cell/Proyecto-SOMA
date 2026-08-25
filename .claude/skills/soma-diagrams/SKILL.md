@@ -40,9 +40,33 @@ Presets disponibles: `verticalFlow`, `horizontalFlow`, `verticalTree`,
 `--embed-diagram` deja el XML dentro del PNG, así que la imagen exportada sigue
 siendo editable en draw.io.
 
-El ejecutable **no está en el PATH**: hay que invocarlo por ruta completa. La
-exportación lanza el Electron del escritorio y puede tardar más de un minuto:
-conviene correrla en segundo plano.
+El ejecutable **no está en el PATH**: hay que invocarlo por ruta completa
+(`C:\Program Files\draw.io\draw.io.exe`).
+
+### Limitación verificada en esta máquina
+
+La exportación por CLI **se cuelga** cuando se invoca desde una sesión no
+interactiva de Claude Code:
+
+- `--version` responde en 0,2 s (no arranca Electron).
+- `-x -f png ...` deja procesos con ~0 % de CPU esperando indefinidamente.
+  Probado con `--no-sandbox --disable-gpu` y con un diagrama de dos nodos: mismo
+  resultado.
+
+La causa es que la exportación necesita el renderer de Electron, que no arranca
+sin sesión de escritorio interactiva.
+
+**Qué hacer entonces:**
+
+1. Escribir el `.drawio` con los nodos en posiciones aproximadas (incluso `0,0`)
+   y **estructura correcta** — nodos y aristas bien definidos.
+2. Pedirle a la persona que ejecute el `--layout` o el export, o que abra el
+   archivo en el escritorio y use *Arrange ▸ Layout*.
+3. Alternativa sin CLI: la salida `url` del skill `drawio` comprime el XML y
+   abre `app.diagrams.net` directamente, sin depender del escritorio.
+
+No dar por bueno un diagrama afirmando que ELK lo acomodó si el export no se
+pudo ejecutar.
 
 ## Reglas de legibilidad
 
