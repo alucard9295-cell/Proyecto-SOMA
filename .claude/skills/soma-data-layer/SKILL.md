@@ -41,23 +41,43 @@ MIGRATIONS: tuple[Migration, ...] = (
 
 ## Agregar acceso a datos
 
-Un repositorio por agregado, en `repositories.py`, con `database_path` en el
-constructor y `with connect(self.database_path) as connection:` en cada método:
+Un repositorio por agregado, en `repositories.py`. **Hereda de `_Repository` y
+usa `self._conn()`** — nunca `with connect(...)` directo:
 
 ```python
-class <X>Repository:
-    def __init__(self, database_path: str):
-        self.database_path = database_path
-
+class <X>Repository(_Repository):
     def get(self, id: int) -> sqlite3.Row | None:
-        with connect(self.database_path) as connection:
+        with self._conn() as connection:
             return connection.execute("SELECT ...", (id,)).fetchone()
 ```
 
-**Atomicidad:** si una operación escribe en varias tablas (ej. un APU y sus
-detalles), tiene que ser **un solo método** del repositorio con **una sola**
-conexión. Repartirla en varias llamadas rompe la transacción. Ver
-`ApuRepository.save()` como referencia.
+`_Repository._conn()` reutiliza la conexión inyectada si existe, y solo abre una
+nueva cuando no la hay. Ojo al editar: la única llamada a `connect()` que debe
+quedar es la de `_Repository` misma. Un reemplazo global de `connect(` por
+`self._conn(` la reescribe también a ella y provoca recursión infinita.
+
+### Por qué existe `_Repository`: el N+1
+
+La primera versión abría `with connect(...)` en cada método. Medido: **101
+conexiones para listar 50 APUs** (1 del listado + 2 por APU). Con la unidad de
+trabajo bajó a **2**.
+
+Cuando una ruta hace varias llamadas al repositorio, envuélvelas:
+
+```python
+with unit_of_work(database_path) as uow:
+    apus = uow.apus.list_all()
+    detalles = uow.apus.get_details_many([a["id"] for a in apus])
+```
+
+Dos reglas que se derivan de esto:
+
+- **Nunca consultes dentro de un bucle.** Si necesitas datos de N filas, el
+  repositorio expone un método `..._many(ids)` con un solo `IN (?)`. Ver
+  `ApuRepository.get_many()` / `get_details_many()`.
+- **Atomicidad:** si una operación escribe en varias tablas (un APU y sus
+  detalles), es **un solo método** con **una sola** conexión. Repartirla en
+  varias llamadas rompe la transacción. Ver `ApuRepository.save()`.
 
 **Errores:** los repositorios no lanzan `HTTPException` — eso acopla dominio a
 HTTP. Devuelven `None` o un valor vacío y la ruta traduce a status code.

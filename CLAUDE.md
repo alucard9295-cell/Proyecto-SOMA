@@ -26,7 +26,7 @@ Toda decisión de arquitectura se registra ahí como ADR, no en comentarios de c
 ```powershell
 # API
 uv sync --directory api
-uv run --directory api pytest                    # 19 tests, deben pasar todos
+uv run --directory api pytest                    # 58 tests, deben pasar todos
 uv run --directory api uvicorn soma_api.main:app --app-dir src --reload --port 8000
 uv run --directory api python -m soma_api.bootstrap_admin --username admon --password <pwd>
 
@@ -41,18 +41,24 @@ npm run build        # obligatorio antes de dar por hecho un cambio de frontend
 1. **El esquema solo cambia por migraciones.** Toda tabla nueva se declara en
    `api/src/soma_api/migrations.py` como una función + entrada en `MIGRATIONS`.
    Nunca un `CREATE TABLE` suelto ni un `executescript` de esquema.
-2. **El SQL vive en `repositories.py`.** Las rutas no abren conexiones ni
+2. **Las reglas de negocio viven en `domain/`.** Sin FastAPI, sin sqlite3, sin
+   LLM. `test_architecture_layering.py` lo verifica por AST. Un cálculo tiene
+   **una** implementación: si el usuario lo ve antes de guardar, lo calculó el
+   backend.
+3. **El dinero es `Decimal`, nunca `float`.** Todo importe pasa por
+   `domain.costing.money()` en cada paso del cálculo.
+4. **El SQL vive en `repositories.py`.** Las rutas no abren conexiones ni
    escriben SQL. Si una ruta necesita datos, pasa por un repositorio.
-3. **Nada en la UI que no exista en el backend.** Si una pantalla llama una ruta
+5. **Nada en la UI que no exista en el backend.** Si una pantalla llama una ruta
    no implementada, se oculta la pantalla — no se deja fallar al usuario. Es
    criterio de aceptación de la Fase 0.
-4. **Secretos jamás en `VITE_*`.** El frontend solo recibe `VITE_API_BASE`.
+6. **Secretos jamás en `VITE_*`.** El frontend solo recibe `VITE_API_BASE`.
    Claves de proveedor, `JWT_SECRET` y `DATABASE_PATH` viven solo en el entorno
    del API.
-5. **El LLM no es fuente de verdad numérica.** Los cálculos de costo, duración y
+7. **El LLM no es fuente de verdad numérica.** Los cálculos de costo, duración y
    ROI los hace Python de forma determinista. El agente puede leer, no calcular
    la cifra final.
-6. **MCP es de solo lectura y con allowlist.** `MCP_ENABLED=false` por defecto;
+8. **MCP es de solo lectura y con allowlist.** `MCP_ENABLED=false` por defecto;
    habilitarlo exige `MCP_ALLOWED_TOOLS` explícito.
 
 ## Estado real vs. documentado
@@ -72,3 +78,19 @@ El backend implementa: `/health`, `/ready`, `/api/admin/login|me|summary`,
   respetar ese estilo en vez de reformatear el archivo entero.
 - Los tests de API viven en `api/tests/` y usan `TestClient` + `tmp_path` con
   `monkeypatch.setenv("DATABASE_PATH", ...)`.
+
+## Entorno Windows
+
+- `pkill` desde Git Bash **no mata procesos de Windows**. Usar `Stop-Process`.
+- Antes de culpar a Docker por un 404/503, comprobar que nada más ocupe el
+  puerto 8000: un `uvicorn` huérfano lo secuestra y el proxy no registra ni una
+  línea. Ausencia de logs del proxy es la pista.
+- En heredocs de Python, `"\n"` se convierte en salto real. Usar `chr(92)`.
+- La exportación por CLI de draw.io se cuelga desde esta sesión: necesita el
+  renderer de Electron. Ver la skill `soma-diagrams`.
+
+## Skills del proyecto
+
+`soma-domain` (reglas de negocio y capas), `soma-data-layer` (migraciones y
+repositorios), `soma-frontend` (UI, textos, navegación), `soma-docs-okf`
+(documentación), `soma-diagrams` (diagramas).
