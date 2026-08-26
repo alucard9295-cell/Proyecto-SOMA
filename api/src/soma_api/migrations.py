@@ -253,6 +253,21 @@ def _create_document_pipeline(connection: sqlite3.Connection) -> None:
     )
 
 
+def _store_extraction_attempt(connection: sqlite3.Connection) -> None:
+    """Guarda lo que el parser logro leer, aunque la factura no cierre.
+
+    Sin esto, una factura en `needs_review` conserva el motivo del rechazo pero
+    pierde los renglones que si se leyeron, y la pantalla de revision solo puede
+    decir "fallo". El valor de revisar esta en confirmar items ya cargados, no
+    en teclearlos de nuevo: la extraccion acierta los items en el 88% de los
+    documentos aunque la aritmetica cierre en bastantes menos.
+
+    JSON en TEXT: es un adjunto de diagnostico del job, no un dato consultable.
+    Lo consultable vive en `silver` cuando la factura se acepta.
+    """
+    _add_column_if_missing(connection, "document_jobs", "extraccion", "TEXT")
+
+
 MIGRATIONS: tuple[Migration, ...] = (
     (1, "create_users", _create_users),
     (2, "create_audit_events", _create_audit_events),
@@ -261,4 +276,5 @@ MIGRATIONS: tuple[Migration, ...] = (
     (5, "create_apus", _create_apus),
     (6, "create_projects", _create_projects),
     (7, "create_document_pipeline", _create_document_pipeline),
+    (8, "store_extraction_attempt", _store_extraction_attempt),
 )

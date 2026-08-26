@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import copy from "./content/site.yaml";
 import ApuEditor from "./ApuEditor.jsx";
 import ProjectSimulator from "./ProjectSimulator.jsx";
+import RevisionFacturas from "./RevisionFacturas.jsx";
 import mark from "./assets/soma-mark.svg";
 import collectiveHousing from "../assets/vivienda colectiva.jpg";
 import existingHouse from "../assets/proyecto.webp";
@@ -74,9 +75,10 @@ function AdminLogin({ onLogin }) {
 }
 
 function DashboardNav({ view, onNavigate }) {
-  // Facturas (pipeline) e Inteligencia (RAG) permanecen ocultas hasta que exista
-  // backend: /api/pipeline/process, /api/rag/* y /api/chat no estan implementados.
-  const options = [["dashboard", "Resumen"], ["supplies", "Insumos"], ["apus", "APUs"], ["simulator", "Simulador"], ["guide", "Orientación"]];
+  // Inteligencia (RAG) permanece oculta hasta que exista backend: /api/rag/* y
+  // /api/chat no estan implementados. "Revisión" si tiene backend
+  // (/api/admin/documentos/revision) y por eso aparece.
+  const options = [["dashboard", "Resumen"], ["supplies", "Insumos"], ["apus", "APUs"], ["simulator", "Simulador"], ["review", "Revisión"], ["guide", "Orientación"]];
   return <nav className="dashboard-nav" aria-label="Módulos administrativos">{options.map(([id, label]) => <button className={view === id ? "active" : ""} onClick={() => onNavigate(id)} key={id}>{label}</button>)}</nav>;
 }
 
@@ -259,7 +261,7 @@ function App() {
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
-  return <div className="app-shell"><Header view={view} onNavigate={setView} onLogout={logout} />{view === "login" ? <AdminLogin onLogin={login} /> : view === "sales" ? <SalesPage /> : <main className="workspace"><DashboardNav view={view} onNavigate={setView} /><section className="workspace-content">{view === "dashboard" && <Dashboard finance={finance} onNavigate={setView} />}{view === "supplies" && <Supplies token={token} />}{view === "apus" && <Apus token={token} />}{view === "simulator" && <ProjectSimulator token={token} />}{view === "guide" && <Guide />}<ActivityLog log={log} /></section></main>}{view !== "login" && <AdvisorWidget token={token} />}</div>;
+  return <div className="app-shell"><Header view={view} onNavigate={setView} onLogout={logout} />{view === "login" ? <AdminLogin onLogin={login} /> : view === "sales" ? <SalesPage /> : <main className="workspace"><DashboardNav view={view} onNavigate={setView} /><section className="workspace-content">{view === "dashboard" && <Dashboard finance={finance} onNavigate={setView} />}{view === "supplies" && <Supplies token={token} />}{view === "apus" && <Apus token={token} />}{view === "simulator" && <ProjectSimulator token={token} />}{view === "review" && <RevisionFacturas token={token} />}{view === "guide" && <Guide />}<ActivityLog log={log} /></section></main>}{view !== "login" && <AdvisorWidget token={token} />}</div>;
 }
 
 export default App;

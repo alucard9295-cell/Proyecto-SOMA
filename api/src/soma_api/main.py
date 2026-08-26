@@ -19,6 +19,7 @@ from .routes.summary import router as summary_router
 from .routes.agent import router as agent_router
 from .routes.simulation import router as simulation_router
 from .routes.construction import router as construction_router
+from .routes.documents import router as documents_router
 
 
 logger = logging.getLogger(__name__)
@@ -127,6 +128,7 @@ app.include_router(summary_router)
 app.include_router(agent_router)
 app.include_router(simulation_router)
 app.include_router(construction_router)
+app.include_router(documents_router)
 
 
 @app.get("/health", tags=["system"])

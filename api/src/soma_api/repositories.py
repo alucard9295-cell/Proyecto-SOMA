@@ -363,14 +363,22 @@ class DocumentRepository(_Repository):
         motivo: str | None = None,
         parser: str | None = None,
         factura_id: int | None = None,
+        extraccion: dict | None = None,
     ) -> None:
         with self._conn() as connection:
             connection.execute(
                 """UPDATE document_jobs
-                      SET estado=?, motivo=?, parser=?, factura_id=?,
+                      SET estado=?, motivo=?, parser=?, factura_id=?, extraccion=?,
                           intentos=intentos+1, updated_at=CURRENT_TIMESTAMP
                     WHERE job_id=?""",
-                (estado, motivo, parser, factura_id, job_id),
+                (
+                    estado,
+                    motivo,
+                    parser,
+                    factura_id,
+                    json.dumps(extraccion, ensure_ascii=False) if extraccion else None,
+                    job_id,
+                ),
             )
 
     def guardar_factura(
@@ -423,6 +431,16 @@ class DocumentRepository(_Repository):
                     ORDER BY j.updated_at DESC""",
                 (estado,),
             ).fetchall()
+
+    def job(self, job_id: int) -> sqlite3.Row | None:
+        with self._conn() as connection:
+            return connection.execute(
+                """SELECT j.*, d.nombre_original, d.storage_key
+                     FROM document_jobs j
+                     JOIN documentos_raw d ON d.documento_id = j.documento_id
+                    WHERE j.job_id = ?""",
+                (job_id,),
+            ).fetchone()
 
 
 class UnitOfWork:

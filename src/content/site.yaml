@@ -186,6 +186,29 @@ asesor:
   enviar: Enviar ↗
   error_prefijo: "No pude completar la asesoría:"
 
+revision:
+  eyebrow: FACTURAS EN REVISIÓN
+  titulo: Documentos que no cerraron solos
+  intro: >-
+    La ingesta no acepta una factura cuyas cifras no cuadran. Estas quedaron
+    esperando confirmación, con lo que sí se pudo leer ya cargado.
+  vacio: No hay facturas esperando revisión.
+  columna_archivo: Archivo
+  columna_emisor: Emisor
+  columna_items: Renglones
+  columna_total: Total leído
+  columna_motivo: Por qué no cerró
+  ver_detalle: Ver renglones
+  ocultar_detalle: Ocultar
+  sin_extraccion: >-
+    De este documento no se guardó la lectura. Se procesó antes de que la
+    ingesta empezara a conservarla; volver a pasarlo la genera.
+  sin_items: El parser no pudo separar los renglones de este documento.
+  detalle_subtotal: Subtotal
+  detalle_iva: IVA
+  detalle_total: Total
+  error_carga: No se pudieron cargar las facturas en revisión.
+
 comun:
   sin_datos: Sin datos
   cargando: Cargando…

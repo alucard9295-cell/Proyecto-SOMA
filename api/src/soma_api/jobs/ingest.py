@@ -50,6 +50,29 @@ def _cabecera(factura: FacturaExtraida) -> tuple:
     )
 
 
+def _extraccion(factura: FacturaExtraida) -> dict:
+    """Lo que el parser leyo, para que la pantalla de revision lo muestre."""
+    return {
+        "emisor_nombre": factura.emisor_nombre,
+        "emisor_nit": factura.emisor_nit,
+        "cufe": factura.cufe,
+        "fecha": factura.fecha,
+        "subtotal": str(factura.subtotal) if factura.subtotal is not None else None,
+        "iva": str(factura.iva) if factura.iva is not None else None,
+        "total": str(factura.total) if factura.total is not None else None,
+        "items": [
+            {
+                "descripcion": item.descripcion,
+                "unidad": item.unidad,
+                "cantidad": str(item.cantidad) if item.cantidad is not None else None,
+                "valor_unitario": str(item.valor_unitario) if item.valor_unitario is not None else None,
+                "valor_total": str(item.total_efectivo()) if item.total_efectivo() is not None else None,
+            }
+            for item in factura.items
+        ],
+    }
+
+
 def _items(factura: FacturaExtraida) -> list[tuple]:
     return [
         (
@@ -116,6 +139,11 @@ def procesar_carpeta(
                     estado="needs_review",
                     motivo=" ".join(factura.veredicto.motivos)[:500],
                     parser=factura.parser,
+                    # Lo que si se leyo viaja con el job. Revisar sirve para
+                    # confirmar renglones ya cargados, no para teclearlos otra
+                    # vez: la extraccion acierta los items mucho mas seguido de
+                    # lo que la aritmetica cierra.
+                    extraccion=_extraccion(factura),
                 )
                 logger.warning(
                     "factura a revision",
