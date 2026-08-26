@@ -40,7 +40,7 @@ async def architect(
         raise HTTPException(status_code=429, detail="Límite de consultas alcanzado")
     if settings.agent_require_auth:
         authorization = request.headers.get("authorization", "")
-        authenticate_bearer(authorization, settings)
+        authenticate_bearer(authorization, settings, request)
 
     user_message = next(
         (message.content for message in reversed(payload.messages) if message.role == "user"),
@@ -59,7 +59,13 @@ async def architect(
                 yield _event({"type": "TEXT_MESSAGE_CONTENT", "delta": delta})
             yield _event({"type": "RUN_FINISHED"})
         except Exception:
-            yield _event({"type": "RUN_ERROR", "message": "El asesor no pudo completar la consulta."})
+            yield _event(
+                {
+                    "type": "RUN_ERROR",
+                    "message": "El asesor no pudo completar la consulta.",
+                    "request_id": getattr(request.state, "request_id", None),
+                }
+            )
 
     return StreamingResponse(
         stream_events(),

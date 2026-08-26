@@ -1,0 +1,193 @@
+# Textos de la interfaz de SOMA.
+#
+# Este archivo es la fuente de verdad de la copy: se edita aqui y la interfaz
+# cambia sin tocar componentes. Reglas:
+#   - No describir funciones que no existan en el backend.
+#   - Espanol con tildes correctas.
+#   - Las listas mantienen su orden en pantalla.
+
+marca:
+  nombre: SOMA
+  tagline: Arquitectura que encuentra potencial
+
+login:
+  contexto: ACCESO ADMINISTRATIVO / LOCAL
+  eyebrow: SOMA / CONTROL ROOM
+  titulo_linea1: Del insumo
+  titulo_linea2: al
+  titulo_enfasis: criterio.
+  descripcion: >-
+    Un precio unitario bien armado sostiene una decisión de obra. Entra para
+    ordenar el catálogo, construir tus APUs y proyectar el cronograma.
+  secuencia:
+    - { paso: "01", nombre: Normalizar }
+    - { paso: "02", nombre: Costear }
+    - { paso: "03", nombre: Proyectar }
+  area: ÁREA RESTRINGIDA
+  encabezado: Iniciar sesión
+  ayuda: El catálogo de insumos, los APUs y el simulador están protegidos.
+  campo_usuario: Usuario
+  campo_password: Contraseña
+  boton: Entrar al control room ↗
+  nota: La contraseña se valida contra el hash almacenado en la base.
+  validando: Validando acceso...
+
+nav:
+  contexto_admin: SOMA / CONTROL ROOM
+  contexto_ventas: SOMA / VENTAS
+  ver_ventas: Ver ventas ↗
+  acceso_admin: Acceso admin ↗
+  cerrar_sesion: Cerrar sesión
+  secciones:
+    - { id: dashboard, etiqueta: Resumen }
+    - { id: supplies, etiqueta: Insumos }
+    - { id: apus, etiqueta: APUs }
+    - { id: simulator, etiqueta: Simulador }
+    - { id: guide, etiqueta: Orientación }
+
+resumen:
+  eyebrow: SOMA / LECTURA OPERATIVA
+  titulo_linea1: El proyecto empieza
+  titulo_linea2: cuando aparecen
+  titulo_enfasis: los patrones.
+  estado_activo: CONTROL ROOM ACTIVO
+  estado_texto: >-
+    Los insumos, los APUs y el simulador ya operan sobre datos reales. La
+    lectura de facturas llegará después.
+  ayuda_titulo: Estado de este resumen
+  ayuda_texto: >-
+    Los indicadores de documentos aún no están conectados a la base: la ingesta
+    de facturas no está implementada. Los módulos de Insumos, APUs y Simulador
+    sí trabajan con datos reales.
+  kpis:
+    - { etiqueta: Facturas procesadas, detalle: Ingesta pendiente de implementar }
+    - { etiqueta: Gasto registrado, detalle: Se poblará con la lectura de facturas }
+    - { etiqueta: Proveedores, detalle: Se poblará con la lectura de facturas }
+    - { etiqueta: Alertas de calidad, detalle: Requieren revisión }
+  acciones_eyebrow: SIGUIENTE MOVIMIENTO
+  acciones_titulo: Lo que ya puedes trabajar hoy.
+  acciones_texto: >-
+    Normaliza el catálogo de insumos, arma los análisis de precio unitario y
+    proyecta un cronograma con costos reales.
+
+# Esta sección describía Facturas, Chroma, Inteligencia y DeepSeek: ninguno
+# existe en el producto actual. Reescrita para contar lo que sí hace.
+orientacion:
+  eyebrow: 03 / ORIENTACIÓN
+  titulo_linea1: Una guía para
+  titulo_linea2: costear
+  titulo_enfasis: mejor.
+  intro: >-
+    SOMA encadena tres momentos: normalizar lo que compras, convertirlo en un
+    precio unitario defendible y proyectar cuánto cuesta y cuánto dura la obra.
+  pasos:
+    - eyebrow: 01 / NORMALIZAR
+      titulo: Un insumo, un nombre
+      texto: >-
+        En Insumos corriges el nombre canónico, la categoría y la unidad. El
+        mismo material comprado con diez descripciones distintas se vuelve una
+        sola entrada con historial de precio.
+      nota: >-
+        Editar el catálogo no altera compras pasadas: solo corrige la entrada
+        maestra a la que apuntan.
+    - eyebrow: 02 / COSTEAR
+      titulo: Del insumo al APU
+      texto: >-
+        En APUs combinas insumos, rendimientos y desperdicios para obtener el
+        costo directo de una partida, y le aplicas administración, imprevistos,
+        utilidad e IVA.
+      nota: >-
+        El cálculo lo hace el backend, así que el precio que ves antes de
+        guardar es exactamente el que queda guardado.
+    - eyebrow: 03 / PROYECTAR
+      titulo: Del APU al cronograma
+      texto: >-
+        En Simulador armas un proyecto con partidas reales. Cada una toma su
+        precio del APU y su duración del rendimiento diario, encadenándose en
+        el calendario.
+      nota: >-
+        La duración redondea hacia arriba: media jornada de trabajo ocupa un
+        día de obra.
+  cierre_eyebrow: LA SECUENCIA SOMA
+  cierre_titulo_linea1: Un precio sin respaldo
+  cierre_titulo_linea2: es una corazonada.
+  cierre_texto: >-
+    Lo que no está implementado no aparece como una acción disponible. Esa
+    frontera evita prometer flujos que todavía no existen.
+
+ventas:
+  hero:
+    eyebrow: SOMA / VIVIENDA MULTIFAMILIAR
+    titulo_linea1: Una casa.
+    titulo_linea2: Varias formas
+    titulo_linea3: de
+    titulo_enfasis: vivirla.
+    descripcion: >-
+      Antes de comprar o transformar, entiende el potencial del inmueble. SOMA
+      ordena arquitectura, números y decisiones en una primera conversación.
+    pasos:
+      - { paso: "01", nombre: Leer la casa }
+      - { paso: "02", nombre: Proyectar escenarios }
+      - { paso: "03", nombre: Decidir con criterio }
+  simulador:
+    eyebrow: SOMA / PRIMERA CUENTA
+    titulo_linea1: ¿Qué podría sostener
+    titulo_enfasis: la transformación?
+    descripcion: >-
+      Compara área, unidades, calidad de obra y renta para tener una primera
+      referencia. No es un avalúo ni una promesa de rentabilidad.
+    # Etiquetas cortas a proposito: en dos columnas estrechas, un texto largo
+    # se parte en tres lineas y el formulario deja de leerse.
+    campos:
+      area: Área (m²)
+      unidades: Unidades
+      calidad: Calidad
+      compra: Compra (COP)
+      renta: Renta / unidad
+      gastos: Gastos / mes
+    boton: Ver escenario ↗
+    calculando: Calculando…
+    resultado_eyebrow: ESCENARIO PRELIMINAR
+    kpis:
+      inversion: Inversión total
+      flujo: Flujo neto anual
+      roi: ROI anual
+      payback: Payback
+  film:
+    eyebrow: SOMA / CONTEXTO
+    titulo_linea1: La idea no es ver el dron.
+    titulo_linea2: Es ver lo que puede llegar a ser.
+  existente:
+    eyebrow: FASE 1 / CASA EXISTENTE
+    titulo_linea1: Lo que ya tienes
+    titulo_enfasis: también funciona.
+    descripcion: >-
+      Antes de imaginar una transformación, leemos la base: estructura,
+      distribución, iluminación, jardín y posibilidades reales de adaptación.
+    pie: Vista de lectura inicial · casa unifamiliar en Bogotá
+
+# El asesor vive en un globo flotante, no en una sección de la página.
+asesor:
+  burbuja_abrir: Hablar con el asesor
+  burbuja_cerrar: Cerrar
+  reiniciar: Reiniciar la conversación
+  titulo: Asesor SOMA
+  subtitulo: Orientación preliminar
+  estado_activo: en línea
+  estado_ocupado: analizando
+  bienvenida: >-
+    Soy el asesor de SOMA. Cuéntame qué inmueble tienes o qué te gustaría
+    estudiar.
+  sugerencias:
+    - Quiero convertir una casa de 180 m² en 3 apartamentos
+    - ¿Cómo se arma el presupuesto de una remodelación?
+    - ¿Qué es un APU y para qué sirve?
+  placeholder: Escribe tu pregunta...
+  enviar: Enviar ↗
+  error_prefijo: "No pude completar la asesoría:"
+
+comun:
+  sin_datos: Sin datos
+  cargando: Cargando…
+  guardar: Guardar
+  buscar: Buscar

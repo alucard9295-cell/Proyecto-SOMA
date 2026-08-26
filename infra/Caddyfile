@@ -1,14 +1,24 @@
 :80 {
-    encode gzip
+	encode gzip
 
-    @api path /api/* /health
-    reverse_proxy @api api:8000 {
-        # Do not buffer LangGraph token events behind the proxy.
-        flush_interval -1
-    }
+	# El API y las sondas de salud van al contenedor de FastAPI.
+	@api path /api/* /health /ready
+	handle @api {
+		header {
+			Cache-Control "no-cache, no-store"
+			X-Accel-Buffering "no"
+		}
+		reverse_proxy api:8000 {
+			# No bufferizar: el asesor responde por SSE token a token.
+			flush_interval -1
+		}
+	}
 
-    header @api {
-        Cache-Control "no-cache, no-store"
-        X-Accel-Buffering "no"
-    }
+	# Todo lo demas es el sitio estatico. try_files hace que rutas de la SPA
+	# como /ventas devuelvan index.html en lugar de 404.
+	handle {
+		root * /srv
+		try_files {path} {path}/ /index.html
+		file_server
+	}
 }

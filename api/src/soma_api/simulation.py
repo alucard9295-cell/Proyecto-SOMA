@@ -110,6 +110,6 @@ def calculate_remodeling(payload: RemodelInput, rules: dict[str, Any] | None = N
             "tier": payload.tier,
             "area_m2": payload.area_m2,
             "units": payload.units,
-            "note": "Estimacion preliminar; no reemplaza presupuesto, avalúo, permisos ni estudio de mercado.",
+            "note": "Estimación preliminar; no reemplaza presupuesto, avalúo, permisos ni estudio de mercado.",
         },
     }

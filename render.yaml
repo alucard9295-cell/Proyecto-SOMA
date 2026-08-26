@@ -1,0 +1,85 @@
+# Blueprint de despliegue de SOMA. Render lo busca SOLO en la raiz del repo.
+#
+# Dos servicios, ambos en plan gratuito:
+#   soma-web  sitio estatico (SPA compilada) servido por el CDN de Render
+#   soma-api  contenedor FastAPI, mismo Dockerfile que usa docker-compose
+#
+# Por que no Vercel: su plan Hobby es solo para uso NO comercial. Si SOMA sirve
+# trabajo facturable, corresponde Pro ($20/mes). Un sitio estatico de Render
+# cubre lo mismo gratis y deja todo el despliegue en un solo proveedor.
+#
+# Caddy no aparece aca: existe para el stack local de docker-compose, donde
+# resuelve mismo-origen sin CORS. Render termina TLS y da dominio por servicio,
+# asi que aqui web y API son origenes distintos y CORS si hace falta.
+#
+# AVISO SOBRE DATOS: mientras el API siga en SQLite sobre disco efimero, la base
+# se reinicia en cada despliegue. Sirve para probar, no para datos reales. Lo
+# resuelve ADR-004 (Postgres gestionado en Neon).
+
+services:
+  - type: web
+    name: soma-web
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      # Unica variable del frontend, publica por definicion (invariante 6).
+      # Debe apuntar al dominio real de soma-api una vez creado.
+      - key: VITE_API_BASE
+        value: https://soma-api.onrender.com
+    routes:
+      # Fallback de SPA: /ventas y demas rutas del cliente devuelven index.html
+      # en vez de 404. Equivale al `try_files` del Caddyfile local.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      # Portados desde vercel.json: al dejar Vercel se perderian en silencio.
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: no-referrer
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains
+
+  - type: web
+    name: soma-api
+    runtime: docker
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    plan: free
+    # /health dice si el proceso vive. /ready ademas comprueba la base; no se
+    # usa aqui porque Render reiniciaria el servicio por una base caida, cuando
+    # lo correcto es dejar de enviarle trafico.
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      # Render genera un secreto aleatorio y lo mantiene entre despliegues.
+      # ENVIRONMENT=production hace que el API se niegue a arrancar sin esto.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: soma-api.onrender.com
+      - key: CORS_ORIGINS
+        value: https://soma-web.onrender.com
+      - key: DATABASE_PATH
+        value: /app/data/soma.sqlite3
+      - key: LOG_LEVEL
+        value: INFO
+      # Secretos: se cargan a mano en el dashboard, nunca en el repo.
+      - key: AGENT_API_KEY
+        sync: false
+      - key: AGENT_BASE_URL
+        sync: false
+      - key: AGENT_MODEL
+        sync: false
