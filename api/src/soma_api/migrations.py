@@ -178,6 +178,81 @@ def _create_projects(connection: sqlite3.Connection) -> None:
     )
 
 
+def _add_column_if_missing(
+    connection: sqlite3.Connection, table: str, column: str, definition: str
+) -> None:
+    """ALTER TABLE ADD COLUMN idempotente.
+
+    SQLite no soporta `ADD COLUMN IF NOT EXISTS`, y una migracion tiene que
+    poder correr dos veces sin romperse (`test_database_migrations`).
+    """
+    existing = {row[1] for row in connection.execute(f"PRAGMA table_info({table})")}
+    if column not in existing:
+        connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+
+
+def _create_document_pipeline(connection: sqlite3.Connection) -> None:
+    # El documento tal como llego. Nunca se corrige aqui: cuando un parser
+    # mejora se reprocesa desde esta tabla, sin volver a pedir el archivo.
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS documentos_raw (
+            documento_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            storage_key TEXT NOT NULL,
+            content_hash TEXT NOT NULL UNIQUE,
+            nombre_original TEXT NOT NULL,
+            mime TEXT,
+            bytes INTEGER,
+            ingested_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    # content_hash es UNIQUE: procesar dos veces el mismo archivo no duplica
+    # una factura. Es lo que hace idempotente a todo el pipeline.
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_documentos_raw_ingested_at ON documentos_raw (ingested_at)"
+    )
+
+    # Estado del procesamiento. Separar el job del documento permite reintentar
+    # sin tocar el original y saber por que quedo algo en revision.
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS document_jobs (
+            job_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            documento_id INTEGER NOT NULL REFERENCES documentos_raw(documento_id) ON DELETE CASCADE,
+            estado TEXT NOT NULL DEFAULT 'received',
+            intentos INTEGER NOT NULL DEFAULT 0,
+            motivo TEXT,
+            parser TEXT,
+            factura_id INTEGER REFERENCES facturas(factura_id),
+            request_id TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_document_jobs_estado ON document_jobs (estado)"
+    )
+
+    # `facturas` nacio en la migracion 4 sin trazabilidad al documento ni CUFE.
+    # Las migraciones aplicadas no se editan: se completan con otra.
+    #
+    # Los importes nuevos van como TEXT y no REAL a proposito. REAL es coma
+    # flotante binaria y reintroduce el ruido que ADR-004 marca para corregir
+    # (26923.100000000002 en una herramienta de presupuestos es un defecto).
+    # TEXT conserva el Decimal exacto y migra limpio a NUMERIC en Postgres;
+    # REAL arrastraria el error hasta alla.
+    _add_column_if_missing(connection, "facturas", "documento_id", "INTEGER REFERENCES documentos_raw(documento_id)")
+    _add_column_if_missing(connection, "facturas", "cufe", "TEXT")
+    _add_column_if_missing(connection, "facturas", "subtotal", "TEXT")
+    _add_column_if_missing(connection, "facturas", "iva", "TEXT")
+    _add_column_if_missing(connection, "facturas", "total", "TEXT")
+    connection.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS uq_facturas_cufe ON facturas (cufe) WHERE cufe IS NOT NULL"
+    )
+
+
 MIGRATIONS: tuple[Migration, ...] = (
     (1, "create_users", _create_users),
     (2, "create_audit_events", _create_audit_events),
@@ -185,4 +260,5 @@ MIGRATIONS: tuple[Migration, ...] = (
     (4, "create_invoices", _create_invoices),
     (5, "create_apus", _create_apus),
     (6, "create_projects", _create_projects),
+    (7, "create_document_pipeline", _create_document_pipeline),
 )

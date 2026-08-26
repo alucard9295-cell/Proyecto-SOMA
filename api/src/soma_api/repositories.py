@@ -314,6 +314,117 @@ class ProjectRepository(_Repository):
             )
 
 
+class DocumentRepository(_Repository):
+    """Documentos crudos, su estado de procesamiento y la factura resultante.
+
+    El `content_hash` es la clave de idempotencia del pipeline: registrar dos
+    veces el mismo archivo devuelve el documento existente en vez de duplicarlo,
+    asi que el ingestor puede correr de mas o reintentar sin ensuciar nada.
+    """
+
+    def registrar_documento(
+        self,
+        *,
+        storage_key: str,
+        content_hash: str,
+        nombre_original: str,
+        mime: str | None,
+        bytes_totales: int,
+    ) -> tuple[int, bool]:
+        """Registra el documento. Devuelve (documento_id, era_nuevo)."""
+        with self._conn() as connection:
+            existente = connection.execute(
+                "SELECT documento_id FROM documentos_raw WHERE content_hash=?",
+                (content_hash,),
+            ).fetchone()
+            if existente is not None:
+                return existente["documento_id"], False
+            cursor = connection.execute(
+                """INSERT INTO documentos_raw
+                    (storage_key, content_hash, nombre_original, mime, bytes)
+                   VALUES (?,?,?,?,?)""",
+                (storage_key, content_hash, nombre_original, mime, bytes_totales),
+            )
+            return cursor.lastrowid, True
+
+    def crear_job(self, documento_id: int, request_id: str | None = None) -> int:
+        with self._conn() as connection:
+            cursor = connection.execute(
+                "INSERT INTO document_jobs (documento_id, estado, request_id) VALUES (?, 'received', ?)",
+                (documento_id, request_id),
+            )
+            return cursor.lastrowid
+
+    def cerrar_job(
+        self,
+        job_id: int,
+        *,
+        estado: str,
+        motivo: str | None = None,
+        parser: str | None = None,
+        factura_id: int | None = None,
+    ) -> None:
+        with self._conn() as connection:
+            connection.execute(
+                """UPDATE document_jobs
+                      SET estado=?, motivo=?, parser=?, factura_id=?,
+                          intentos=intentos+1, updated_at=CURRENT_TIMESTAMP
+                    WHERE job_id=?""",
+                (estado, motivo, parser, factura_id, job_id),
+            )
+
+    def guardar_factura(
+        self,
+        *,
+        documento_id: int,
+        cabecera: tuple,
+        items: list[tuple],
+    ) -> int:
+        """Inserta una factura y sus items en una sola transaccion.
+
+        Repartirlo en varias llamadas dejaria facturas sin renglones si algo
+        falla en medio. Ver `ApuRepository.save` como referencia del patron.
+        """
+        with self._conn() as connection:
+            cursor = connection.execute(
+                # `documento_id` va ultimo porque se agrega despues de la
+                # cabecera. El orden de esta lista y el de la tupla tienen que
+                # coincidir: no coincidian, y el resultado fue una factura con
+                # el subtotal guardado en el CUFE. SQLite no avisa de eso.
+                """INSERT INTO facturas
+                    (proveedor_nombre, proveedor_nit, numero_factura, fecha_factura,
+                     total_pagar, cufe, subtotal, iva, total, documento_id)
+                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                (*cabecera, documento_id),
+            )
+            factura_id = cursor.lastrowid
+            connection.executemany(
+                """INSERT INTO factura_items
+                    (factura_id, descripcion_cruda, unidad_medida, cantidad,
+                     valor_unitario, valor_total)
+                   VALUES (?,?,?,?,?,?)""",
+                [(factura_id, *item) for item in items],
+            )
+            return factura_id
+
+    def factura_por_cufe(self, cufe: str) -> sqlite3.Row | None:
+        with self._conn() as connection:
+            return connection.execute(
+                "SELECT * FROM facturas WHERE cufe=?", (cufe,)
+            ).fetchone()
+
+    def jobs_por_estado(self, estado: str) -> list[sqlite3.Row]:
+        with self._conn() as connection:
+            return connection.execute(
+                """SELECT j.*, d.nombre_original
+                     FROM document_jobs j
+                     JOIN documentos_raw d ON d.documento_id = j.documento_id
+                    WHERE j.estado = ?
+                    ORDER BY j.updated_at DESC""",
+                (estado,),
+            ).fetchall()
+
+
 class UnitOfWork:
     """Agrupa los repositorios sobre una unica conexion y transaccion.
 
@@ -328,6 +439,7 @@ class UnitOfWork:
         self.supplies = SupplyRepository(database_path, connection)
         self.apus = ApuRepository(database_path, connection)
         self.projects = ProjectRepository(database_path, connection)
+        self.documents = DocumentRepository(database_path, connection)
 
 
 @contextmanager

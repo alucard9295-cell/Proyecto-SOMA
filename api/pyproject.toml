@@ -10,6 +10,10 @@ dependencies = [
     "langchain-mcp-adapters>=0.2,<1",
     "langchain-openai>=1,<2",
     "langgraph>=1,<2",
+    # Extraccion posicional de PDF. No se usa OCR: las facturas de proveedor
+    # traen capa de texto, y rasterizar para adivinar digitos exactos degrada
+    # cifras que ya son correctas. Ver docs/PLAN-INGESTA-FACTURAS.md.
+    "pdfplumber>=0.11,<1",
     "pyyaml>=6,<7",
     "uvicorn[standard]>=0.35,<1",
 ]
