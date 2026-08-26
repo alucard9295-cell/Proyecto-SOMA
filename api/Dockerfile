@@ -14,4 +14,8 @@ ENV PYTHONPATH="/app/src"
 ENV PYTHONDONTWRITEBYTECODE="1"
 
 EXPOSE 8000
-CMD ["uvicorn", "soma_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# El puerto lo decide la plataforma: Render y Railway inyectan PORT. Si se fija
+# 8000 aqui, el proceso arranca sano en el puerto equivocado y el sintoma es
+# enganoso (health check en rojo, logs limpios). `exec` deja a uvicorn como
+# PID 1 para que reciba SIGTERM y cierre ordenado en cada despliegue.
+CMD ["sh", "-c", "exec uvicorn soma_api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

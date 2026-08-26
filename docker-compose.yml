@@ -1,4 +1,28 @@
 services:
+  # Postgres local con pgvector ya compilado. Existe para desarrollar y probar
+  # la migracion de ADR-004: mientras el API siga en SQLite, este servicio no
+  # tiene consumidores dentro de compose y solo lo usa DBeaver desde el host.
+  # No instalar Postgres en Windows: la version y las extensiones difieren de
+  # produccion, que es justo lo que esta imagen evita.
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-soma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-solo-para-esta-maquina}
+      POSTGRES_DB: ${POSTGRES_DB:-soma}
+    # Publicado solo en loopback: accesible desde DBeaver, no desde la red.
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - soma_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-soma} -d ${POSTGRES_DB:-soma}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
   api:
     build:
       context: ./api
@@ -39,3 +63,4 @@ services:
 
 volumes:
   soma_data:
+  soma_pg:
