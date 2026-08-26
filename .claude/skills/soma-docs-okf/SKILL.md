@@ -1,11 +1,11 @@
 ---
 name: soma-docs-okf
-description: Usar al escribir, actualizar o reorganizar documentación de SOMA en el bundle C:\proyectos_ia\docs — diagnósticos, ADRs, planes, guías. Cubre el formato OKF v0.2 (Open Knowledge Format) y la convención de diagramas Mermaid.
+description: Usar al escribir, actualizar o reorganizar documentación de SOMA en el bundle `docs/` del repositorio — diagnósticos, ADRs, planes, guías. Cubre el formato OKF v0.2 (Open Knowledge Format) y la convención de diagramas Mermaid.
 ---
 
 # Documentación OKF de SOMA
 
-Toda la documentación vive en el bundle `C:\proyectos_ia\docs`, en formato
+Toda la documentación vive en el bundle `docs/` de este repositorio, en formato
 **OKF v0.2** (Open Knowledge Format, spec de Google Cloud). El bundle está
 declarado en `index.md` con `okf_version: "0.2"`.
 
