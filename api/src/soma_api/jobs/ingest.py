@@ -63,12 +63,23 @@ def _items(factura: FacturaExtraida) -> list[tuple]:
     ]
 
 
-def procesar_carpeta(carpeta: Path, database_path: str, limite: int = LIMITE_POR_CORRIDA) -> dict:
-    """Procesa hasta `limite` PDFs. Devuelve el conteo por resultado."""
+def procesar_carpeta(
+    carpeta: Path,
+    database_path: str,
+    limite: int = LIMITE_POR_CORRIDA,
+    recursivo: bool = False,
+) -> dict:
+    """Procesa hasta `limite` PDFs. Devuelve el conteo por resultado.
+
+    Con `recursivo`, recorre subcarpetas: el archivo historico esta organizado
+    por mes, y una de esas carpetas contiene una copia anidada de si misma. No
+    hace falta limpiarla a mano — el `content_hash` la reconoce como repetida.
+    """
     corrida = run_id()
     resumen = {"nuevos": 0, "repetidos": 0, "validados": 0, "revision": 0}
 
-    archivos = sorted(carpeta.glob("*.pdf"))[:limite]
+    patron = "**/*.pdf" if recursivo else "*.pdf"
+    archivos = sorted(carpeta.glob(patron))[:limite]
     logger.info(
         "ingesta iniciada",
         extra={"request_id": corrida, "carpeta": str(carpeta), "archivos": len(archivos)},
@@ -144,6 +155,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Ingesta de facturas de proveedor en PDF")
     parser.add_argument("carpeta", help="Carpeta con los PDF a procesar")
     parser.add_argument("--limite", type=int, default=LIMITE_POR_CORRIDA)
+    parser.add_argument(
+        "--recursivo", action="store_true", help="Recorrer tambien las subcarpetas"
+    )
     args = parser.parse_args()
 
     carpeta = Path(args.carpeta)
@@ -153,7 +167,9 @@ def main() -> None:
     settings = load_settings()
     configure_logging(settings.log_level)
     init_db(settings.database_path)
-    resumen = procesar_carpeta(carpeta, settings.database_path, args.limite)
+    resumen = procesar_carpeta(
+        carpeta, settings.database_path, args.limite, recursivo=args.recursivo
+    )
 
     print(
         f"nuevos={resumen['nuevos']} repetidos={resumen['repetidos']} "

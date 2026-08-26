@@ -1,6 +1,6 @@
 # Plan de ingesta de facturas
 
-**Estado:** en curso · **Rama:** `feat/ingesta-facturas` · **Fecha:** 2026-08-26
+**Estado:** en curso · **Rama:** `feat/ingesta-lote-historico` · **Actualizado:** 2026-08-26
 
 Este documento vive **dentro del repo** a propósito: el bundle de documentación
 OKF está en `C:\proyectos_ia\docs`, fuera de control de versiones, así que quien
@@ -8,250 +8,292 @@ clone este repositorio no recibe ningún ADR. Mientras eso no se resuelva, lo qu
 haga falta para retomar el trabajo tiene que estar acá.
 
 Objetivo: convertir PDFs de facturas de proveedor en filas de `facturas` y
-`factura_items`, de forma automática y verificable, sin que el LLM toque una
-sola cifra.
+`factura_items`, de forma verificable, sin que el LLM toque una sola cifra.
 
 ---
 
-## 1. Qué ya está hecho y verificado
+## 1. Arquitectura elegida
+
+**Lo pesado corre local. La nube solo sirve y lee.**
+
+```
+TU MÁQUINA                                    NUBE
+──────────                                    ────
+PDFs (carpeta por mes)
+      │
+      ▼
+Docling + parser genérico     ── escribe ──►  Neon · Postgres + pgvector
+(~1,8 GB, ~10-40 s/factura)                          ▲
+      │                                              │ lee
+      ▼                                              │
+document_jobs: indexed / needs_review        API FastAPI · Render free
+                                                     ▲
+                                                     │
+                                             Sitio estático · Render free
+```
+
+### Por qué así
+
+El extractor necesita ~1,1 GB de RAM. En Render el escalón que lo aguanta es
+**Standard: $25/mes** — $300 al año para correr un lote de 40 minutos una vez al
+mes. Corriéndolo en la máquina cuesta $0 y va más rápido, porque usa varios
+núcleos en vez del único de la instancia.
+
+El worker pesado **no necesita estar online**. Se lanza a mano o con el
+Programador de tareas de Windows.
+
+### Costo total
+
+| Componente | Dónde | Costo |
+| --- | --- | --- |
+| Sitio estático | Render | $0 |
+| API FastAPI | Render free | $0 |
+| Postgres + pgvector | Neon free (0,5 GB, 100 CU-h/mes, permanente) | $0 |
+| Archivos originales | Cloudflare R2 free (10 GB, sin egreso) | $0 |
+| Ingesta | máquina local | $0 |
+| **Total** | | **$0 / año** |
+
+Único compromiso: el plan free de Render duerme el servicio a los 15 minutos y
+despierta en ~1 minuto. Si molesta, el siguiente paso **también es gratis**:
+Koyeb free duerme a la hora en vez de a los quince minutos. Solo se mueve si el
+problema aparece de verdad.
+
+**El cron de $1/mes ya no hace falta.** Se recomendó cuando la ingesta iba a
+correr en la nube; al pasar a local, lo programa el sistema operativo.
+
+### Descartados, con números
+
+| Opción | Por qué no |
+| --- | --- |
+| Cloudflare Workers | Corre JS/WASM. El API es Python (FastAPI + LangGraph). Elegirlo es reescribirlo entero |
+| VPS + Coolify/Dokploy | €5–7/mes = $65–90/año, y te vuelve sysadmin. Solo vale con varios proyectos |
+| DigitalOcean App Platform | $5/mes = $60/año, por encima del presupuesto |
+| Fly.io | ~$3/mes = $36/año. Su ventaja son los procesos persistentes, que ya no necesitamos |
+| Modal | Para cargas de IA que ahora corren en la máquina local |
+| Render Standard | $25/mes solo para aguantar el extractor |
+
+---
+
+## 2. Flujo de trabajo
+
+### Cada mes
+
+```powershell
+# 1. Dejar los PDFs del mes en su carpeta
+#    facturas_db_pdf\FACTURAS PROYECTO CASA <MES>\
+
+# 2. Procesar (idempotente: repetir no duplica nada)
+uv run --directory api python -m soma_api.jobs.ingest <carpeta> --recursivo
+
+# 3. Revisar lo que no cerró, en la pantalla de needs_review
+```
+
+### Qué hace cada paso
+
+1. **Registro.** Cada archivo se hashea (SHA-256). Si ese hash ya existe, se
+   omite. Por eso se puede volver a correr sobre la misma carpeta sin miedo, y
+   por eso la copia anidada de DICIEMBRE no ensució nada.
+2. **Extracción.** Sin OCR: las facturas traen capa de texto y los dígitos
+   exactos ya están en el archivo.
+3. **Validación.** Dos comprobaciones, y hacen falta las dos: que la suma de los
+   ítems dé el subtotal, y que subtotal más IVA dé el total.
+4. **Destino.** Si cierra, entra a `facturas` y `factura_items`. Si no cierra,
+   **no entra**: queda como job en `needs_review` con el motivo escrito.
+
+### Estados de un documento
+
+```
+received ──► extracting ──┬──► indexed        (cerró: está en la base)
+                          └──► needs_review   (no cerró: espera a una persona)
+```
+
+Nada pasa a `indexed` sin cuadrar. Ese es el contrato del pipeline.
+
+---
+
+## 3. Lo que ya está hecho y verificado
 
 | Cambio | Verificación |
 | --- | --- |
-| `api/Dockerfile` respeta `$PORT` | Contenedor arrancado con `PORT=9999`: uvicorn escucha ahí, `/health` y `/ready` responden 200 |
-| `render.yaml` en la raíz | Blueprint con dos servicios gratuitos; **no validado contra un despliegue real** |
-| Servicio `db` en `docker-compose.yml` | PostgreSQL 17.11 + extensión `vector` 0.8.6 corriendo |
-
-### Sobre el Dockerfile
-
-```dockerfile
-CMD ["sh", "-c", "exec uvicorn soma_api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
-```
-
-Render y Railway inyectan `PORT`. Con el puerto fijo en 8000 el proceso arranca
-**sano en el puerto equivocado**: el health check queda en rojo y los logs salen
-limpios, que es de los fallos más difíciles de diagnosticar. El `exec` deja a
-uvicorn como PID 1 para que reciba `SIGTERM` y cierre ordenado en cada deploy.
-
-### Sobre `render.yaml`
-
-Reemplaza a Vercel. El plan Hobby de Vercel es solo para uso **no comercial**;
-si SOMA sirve trabajo facturable corresponde Pro ($20/mes). Un sitio estático de
-Render cubre lo mismo gratis y deja todo el despliegue en un proveedor.
-
-Los cinco headers de seguridad de `vercel.json` están portados al blueprint. Al
-abandonar Vercel se habrían perdido en silencio.
-
-**Pendiente al primer deploy:** los dominios `soma-api.onrender.com` y
-`soma-web.onrender.com` son los que Render asigna por convención. Si están
-tomados, asigna otros y hay que corregir `VITE_API_BASE` y `CORS_ORIGINS`.
+| `api/Dockerfile` respeta `$PORT` | Contenedor con `PORT=9999`: uvicorn escucha ahí, `/health` y `/ready` en 200 |
+| `render.yaml` | Blueprint con dos servicios gratuitos. **No validado contra un despliegue real** |
+| Servicio `db` en compose | PostgreSQL 17.11 + `vector` 0.8.6 corriendo |
+| Migración 7 | `documentos_raw`, `document_jobs`, y `facturas` completada con CUFE e importes |
+| Pipeline sobre SQLite | 60 documentos únicos de 67 archivos; 15 facturas, 63 ítems; segunda corrida: 67 repetidos, 0 duplicados |
+| 88 tests | Verdes |
 
 ---
 
-## 2. Lo que aprendimos de las facturas reales
+## 4. Lo aprendido de las facturas reales
 
-Seis facturas en `C:\proyectos_ia\arquitectura\facturas_db_pdf`, de tres
-emisores. Todo lo que sigue está verificado sobre esos archivos, no supuesto.
+Seis meses de facturas, 60 documentos únicos, varios emisores. Todo verificado
+sobre esos archivos.
 
 ### No hace falta OCR
 
-Las seis tienen capa de texto. Los caracteres exactos están dentro del PDF.
-Aplicar OCR sería rasterizar la página y **adivinar** dígitos que ya son
-exactos: en facturas, un `8` leído como `3` corrompe el APU en silencio. OCR es
-el recurso para documentos escaneados, y estos no lo son.
+Todas traen capa de texto. Se extrae el **100% del texto** y **60 de 60 CUFE**.
+Las que fallan no fallan por caracteres ilegibles, sino por **estructura de
+tabla**. OCR devolvería el mismo texto y el mismo problema, a cambio de cientos
+de MB.
 
-Consecuencia práctica: no entra Tesseract, la imagen Docker no crece cientos de
-MB, y no hace falta una segunda imagen para el worker.
+### El CUFE está siempre
 
-### El CUFE está siempre disponible
+96 hexadecimales, extraíbles con una expresión regular en las 60. Da una clave
+determinista para deduplicar **sin leer una sola cifra**, y es el puntero al
+documento legal.
 
-Las seis traen el CUFE (96 caracteres hexadecimales) extraíble con regex. Da una
-clave única y determinista para deduplicar **sin depender de parsear una sola
-cifra**. El NIT del comprador (Mermont, `901687820`) también aparece en las seis:
-si no está, la factura no es nuestra y va a `needs_review`.
+### Un solo lector de dinero
 
-Ninguna trae el XML DIAN adjunto. El XML sigue siendo preferible cuando se pueda
-conseguir del correo original (ver ADR-006), pero el PDF alcanza.
+Los proveedores escriben `$150,000.00`, `73.361,34` y `330.000`. El punto es
+decimal para uno y separador de miles para otro: los mismos caracteres
+significan cosas opuestas. La regla que resuelve los tres es que **el último
+separador es decimal solo si le siguen exactamente dos dígitos**.
 
-### Un solo parser de dinero, no tres
+### Tres reglas que se aprendieron por las malas
 
-Los tres emisores escriben los importes distinto:
+Volverán a aparecer con cada emisor nuevo. Están en el código con su comentario:
 
-| Emisor | Escribe | Vale |
-| --- | --- | --- |
-| Ferretería Constructiva | `$150,000.00` | 150000.00 |
-| Eleequipos | `330.000` | 330000 |
-| Sodimac | `73.361,34` | 73361.34 |
-
-El punto es decimal para el primero y separador de miles para el tercero: los
-mismos caracteres significan cosas opuestas.
-
-La regla que resuelve los tres sin saber de antemano el emisor: **el último
-separador es decimal solo si le siguen exactamente dos dígitos.** La validación
-aritmética confirma después si la lectura fue correcta.
-
-*(Una versión anterior de este plan proponía configurar el formato por emisor.
-Resultó innecesario.)*
-
-### La técnica de extracción que funciona
-
-`extract_tables()` de pdfplumber no encuentra nada: las facturas no tienen
-líneas dibujadas, son columnas alineadas visualmente. Lo que sí funciona:
-
-1. Agrupar las palabras de la página por coordenada Y → filas visuales.
-2. Localizar la fila de encabezado y tomar la coordenada X de cada título.
-3. Asignar cada palabra de cada fila a la columna cuyo borde esté más cerca.
-
-Un solo algoritmo. Lo único que cambia por emisor es qué títulos buscar y a qué
-campo mapea cada columna.
-
-### Tres reglas que costaron iteraciones
-
-Están documentadas porque volverán a aparecer al añadir un proveedor nuevo:
-
-1. **Los totales del pie solo se buscan debajo de la última fila de ítem.** Sin
-   esa frontera, `IVA` hace match dentro de una fila (`IVA 19% $285,714.00`) y el
-   impuesto de la factura termina siendo el de un renglón.
-2. **La etiqueta debe coincidir como palabra completa.** Sin `\b`, `Total` hace
-   match dentro de `Subtotal`.
+1. **Los totales solo se buscan debajo de la última fila de ítem.** Sin esa
+   frontera, `IVA` hace match dentro de un renglón (`IVA 19% $285,714.00`) y el
+   impuesto de la factura termina siendo el de una línea.
+2. **La etiqueta debe coincidir como palabra completa, y las largas primero.**
+   Sin eso, `Total` hace match dentro de `Subtotal`, y `TOTAL` le gana a
+   `TOTAL A PAGAR`.
 3. **Un importe debe traer separador de miles.** Sin esa exigencia, el `19` de
-   `IVA 19%` y el `2026` de una fecha se cuelan como si fueran montos.
+   `IVA 19%` entra como si fuera el impuesto, y el `2026` de una fecha como si
+   fuera un monto.
 
-### El hallazgo que más importa
+### Validar los totales no valida los ítems
 
-Sobre las seis facturas, `subtotal + iva = total` **cuadra en las seis**. Pero
-los ítems solo salen bien en las cuatro de Ferretería (19 renglones limpios);
-Eleequipos pierde la descripción y Sodimac mete todos los importes en una sola
-celda.
-
-**Validar los totales del pie no valida los ítems**: los tres importes del pie se
-leen independientemente de la tabla, así que los renglones pueden estar
-destrozados y la factura igual "cuadra".
-
-La regla completa de ADR-006 §6 incluye *"la suma de los ítems coincide con el
-subtotal"*, y es justamente esa mitad la que atrapa este caso. Hay que
-implementar las dos.
-
-El prototipo está en el scratchpad de la sesión (`parsers_proto.py`), no en el
-repo: es material de exploración, y su contenido se reescribe siguiendo las
-convenciones del proyecto al pasar a `api/`.
+Los tres importes del pie se leen aparte de la tabla, así que los renglones
+pueden estar destrozados y la factura igual "cuadrar". Verificado: seis de seis
+pasaban la comprobación del pie mientras dos tenían los ítems ilegibles. Por eso
+la suma de ítems es obligatoria.
 
 ---
 
-## 3. Corrección al estado documentado
+## 5. Evaluación de Docling (en curso)
 
-`facturas` y `factura_items` **ya existen**, creadas por la migración 4
-(`_create_invoices` en `api/src/soma_api/migrations.py`). Se pueden usar tal cual
-para la primera versión.
+El parser posicional propio resuelve el **25%** (15 de 60). El resto falla por
+estructura de tabla, no por texto.
 
-No existen todavía: `documentos_raw`, `document_jobs`, `InvoiceRepository`,
-rutas de documentos, ni módulo de dominio de facturas.
+[Docling](https://github.com/docling-project/docling) (IBM, **licencia MIT**)
+usa TableFormer, entrenado para tablas **sin bordes dibujados** — exactamente el
+caso. Devuelve encabezados **semánticos** (`Descripción`, `Valor unitario`) en
+vez de coordenadas, así que un mapeo de sinónimos generaliza a emisores nunca
+vistos y **elimina la necesidad de un perfil por proveedor**.
 
-Esto permite correr el pipeline completo **sobre SQLite**, sin Postgres ni
-almacenamiento de objetos, y verificarlo antes de migrar nada.
+Probado en tres facturas, incluidas dos que el parser propio no puede leer:
+reconstruyó las tres correctamente, y en la de control separó `REF` de
+`DESCRIPCIÓN` mejor que el parser propio.
 
----
+**Costo medido:** 1,2 GB de entorno + 593 MB de modelos, ~1,1 GB de RAM,
+entre 6 y 40 s por factura. Es lo que obliga a correrlo local.
 
-## 4. Plan por fases
+**Estado honesto de la medición sobre las 60:** los primeros resultados dan
+pocas validadas, y la causa son bugs del mapeo, no de Docling — repite las tres
+reglas de la sección anterior que no se trasladaron al script nuevo (tomó el
+`19.00` del porcentaje de IVA como si fuera el monto, y `TOTAL Base Imponible`
+le ganó a `TOTAL`). Las tablas que Docling entrega están bien; la capa que las
+interpreta está verde.
 
-El orden importa: las fases 1 a 4 no cuestan dinero y no requieren Postgres, R2
-ni cron.
+**No se ha adoptado todavía.** La decisión se toma con la medición corregida.
 
-### Fase 1 — Desplegar lo que ya existe
+### Alternativas descartadas
 
-Requiere intervención manual (cuenta y dashboard):
-
-1. Crear cuenta en Render y conectar el repositorio.
-2. Desplegar con el blueprint. Ajustar `VITE_API_BASE` y `CORS_ORIGINS` con los
-   dominios reales asignados.
-3. Ejecutar `bootstrap_admin` una vez para crear el usuario administrador.
-
-**Sin resolver:** cómo se ejecuta `bootstrap_admin` en producción. Hoy es un
-`python -m` que alguien debe correr dentro del contenedor. Hay que decidir entre
-un shell del servicio, un job de una sola vez, o un arranque idempotente.
-
-**Aviso:** mientras el API siga en SQLite sobre disco efímero, la base se
-reinicia en cada despliegue. Sirve para probar, no para datos reales.
-
-### Fase 2 — Ingesta funcionando sobre SQLite
-
-1. **Migración 7**: `documentos_raw` (con `content_hash` único para
-   idempotencia) y `document_jobs` (estado, intentos, error, timestamps).
-2. **`domain/facturas.py`**: `parse_money` y las validaciones aritméticas
-   —incluida la suma de ítems—. **Puro**: sin pdfplumber, sin sqlite3, sin
-   FastAPI. `test_architecture_layering.py` lo verifica por AST.
-3. **Parsers en infraestructura**: los tres emisores detrás de un protocolo
-   común, con registro ordenado y fallback a `needs_review`.
-4. **`InvoiceRepository`** siguiendo el patrón de `repositories.py`: hereda de
-   `_Repository`, una sola conexión por operación atómica, devuelve `None` en vez
-   de lanzar. Registrarlo en `UnitOfWork`.
-5. **Comando `python -m soma_api.jobs.ingest <carpeta>`**. Trabajo nuevo real:
-   **no existe forma de generar `request_id` fuera de una request HTTP**. Se
-   genera en `RequestIdMiddleware` y vive en `request.state`. Un comando de cron
-   corre sin request, así que hay que escribir ese helper por primera vez,
-   siguiendo la forma del middleware.
-6. **Tests** con el patrón existente: `tmp_path` + `monkeypatch.setenv("DATABASE_PATH", ...)`.
-
-### Fase 3 — Arreglar Eleequipos y Sodimac
-
-Con la validación de suma de ítems activa, ambos caen a `needs_review` como
-corresponde. Se corrigen uno a uno, con la factura real como evidencia.
-
-### Fase 4 — Ruta y pantalla de `needs_review`
-
-Criterio de aceptación, no mejora posterior: sin esta pantalla, una factura que
-el parser no entiende desaparece en silencio, que es peor que no procesarla.
-
-Respetar el invariante 5: nada en la UI que no exista en el backend.
-
-### Fase 5 — Postgres (ADR-004) y almacenamiento de objetos
-
-Recién cuando el pipeline funcione a mano. Migrar a Neon y mover los binarios a
-Cloudflare R2, dejando en la base solo referencia y hash.
-
-### Fase 6 — El cron
-
-Último. Un cron solo *agenda* un comando que ya funciona. En Render son **$1/mes
-mínimo** y es el único costo fijo de todo el plan.
+- **Marker**: rápido, pero GPL-3.0 más una licencia de pesos que restringe el
+  uso comercial por encima de cierta facturación. Riesgo legal innecesario.
+- **MinerU**: fuerte en fórmulas y documentos CJK, que no es el problema.
+- **OCR (Tesseract)**: no aporta nada donde ya hay capa de texto, y degrada
+  dígitos exactos.
+- **Modelo de visión**: genérico pero no determinista y con costo por documento.
+  Queda como asistente que **propone** una lectura en `needs_review` para que
+  una persona la confirme, nunca escribiendo directo.
 
 ---
 
-## 5. Costos
+## 6. La vía del XML (pendiente de comprobar)
 
-Todo lo anterior hasta la fase 4 cuesta **$0**.
+En Colombia **la factura electrónica es el XML UBL**; el PDF es su
+representación gráfica. Con el XML, **un solo parser sirve para todos los
+emisores**: sin perfiles, sin coordenadas, sin heurísticas.
 
-| Componente | Plan | Coste |
-| --- | --- | --- |
-| Render — sitio estático | Free | $0 |
-| Render — API | Free (duerme a los 15 min) | $0 |
-| Neon — Postgres | Free, permanente, sin tarjeta | $0 (0,5 GB, 100 CU-h/mes) |
-| Cloudflare R2 | Free | $0 (10 GB, sin cargo de egreso) |
-| Render — cron | mínimo | **$1/mes** |
+El emisor está **obligado** a enviar el XML al correo que registra en el propio
+documento. En estas facturas ese campo es `mermont2023@gmail.com`, así que los
+XML probablemente ya estén en esa bandeja.
 
-Probar no consume cuota apreciable: seis facturas son kilobytes y cada corrida
-dura segundos. Neon permite 10 branches por proyecto, así que cada prueba puede
-arrancar de una base limpia y desecharla después.
+**Sin comprobar todavía.** Si aparecen, un parser reemplaza todo el trabajo de
+extracción de PDF.
 
-**No usar Airflow.** MWAA arranca en ~$350/mes y Cloud Composer en ~$300/mes.
-Para decenas de facturas al mes, un cron de $1 sobra. Airflow se justifica con
-decenas de pipelines interdependientes.
+Lo que **no** es viable: automatizar la descarga desde el catálogo de la DIAN.
+`catalogo-vpfe.dian.gov.co` responde 403 a clientes que no son navegador, y la
+descarga masiva sin token está deshabilitada por políticas de CAPTCHA. Son
+controles deliberados, no obstáculos técnicos.
+
+Vías legítimas, en orden de conveniencia: **correo** (desatendido tras autorizar
+una vez) → **portal DIAN del receptor** (login manual por tanda) → **servicio
+pago** (Kontalid, QFe Collector, Dataico).
+
+### Advertencia legal
+
+**SOMA no es soporte contable ni tributario.** El documento válido ante la DIAN
+es el XML con su CUFE, más el acuse de recibo que la Ley 2155 exige al
+comprador. Extraer cifras del PDF sirve para **control de costos interno** —que
+es lo que hace este producto: APU, costo unitario, simulación— pero no como
+respaldo de una declaración.
+
+El CUFE que guardamos mitiga esto: es el puntero al documento legal, así que
+cualquier cifra interna es trazable al original aunque el original no esté acá.
 
 ---
 
-## 6. Cómo retomar esto
+## 7. Próximos pasos
+
+En orden de rentabilidad.
+
+1. **Corregir el mapeo de Docling** y volver a medir sobre las 60. Es el número
+   que decide si se adopta.
+2. **Comprobar si los XML están en el correo.** Diez minutos de búsqueda que
+   pueden ahorrar semanas.
+3. **Pantalla de `needs_review`.** Hoy lo que no valida existe solo en la base.
+   Sin pantalla, un documento que el parser no entiende desaparece en silencio,
+   que es peor que no procesarlo. Criterio de aceptación, no mejora posterior.
+4. **`bootstrap_admin` en producción.** Sigue siendo un `python -m` que alguien
+   debe ejecutar dentro del contenedor.
+5. **Postgres gestionado** (`SOMA-ADR-004`): migrar a Neon y mover los binarios
+   a R2, dejando en la base solo referencia y hash.
+6. **Programar la ingesta** con el Programador de tareas de Windows.
+
+---
+
+## 8. Cómo retomar esto
 
 ```powershell
-git checkout feat/ingesta-facturas
+git checkout feat/ingesta-lote-historico
 docker compose up -d db                       # Postgres local con pgvector
 uv sync --directory api
-uv run --directory api pytest                 # 58 tests, deben pasar todos
+uv run --directory api pytest                 # 88 tests, deben pasar todos
+
+# Procesar facturas
+uv run --directory api python -m soma_api.jobs.ingest "<carpeta>" --recursivo
 ```
 
 Las facturas de prueba están en `C:\proyectos_ia\arquitectura\facturas_db_pdf`
 (fuera del repo: son documentos comerciales reales).
 
+Dónde está cada cosa:
+
+| Qué | Dónde |
+| --- | --- |
+| Reglas puras (dinero, validación) | `api/src/soma_api/domain/facturas.py` |
+| Extracción de PDF | `api/src/soma_api/invoice_parsing.py` |
+| Persistencia | `DocumentRepository` en `api/src/soma_api/repositories.py` |
+| Comando de ingesta | `api/src/soma_api/jobs/ingest.py` |
+| Esquema | migración 7 en `api/src/soma_api/migrations.py` |
+
 Lecturas previas, en el bundle externo `C:\proyectos_ia\docs`:
 
-- `SOMA-ADR-006-ingesta-documental.md` — decisiones de origen, disparo y parsers
+- `SOMA-ADR-006-ingesta-documental.md` — origen, disparo y parsers
 - `SOMA-ADR-004-postgres-pgvector.md` — motor de datos y entornos por branch
 - `SOMA-DATA-GOVERNANCE.md` — capas medallón y nomenclatura
 - `SOMA-INFRA-AND-COSTS.md` — topología y costos
