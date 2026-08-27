@@ -93,7 +93,7 @@ Lo que hacía feos los diagramas anteriores, y cómo evitarlo:
 - `flowchart LR` para arquitectura y despliegue.
 - `sequenceDiagram` para protocolos (login, SSE del asesor, cola de jobs).
 - `erDiagram` para el modelo de datos.
-- Los diagramas maestros viven en `C:\proyectos_ia\docs\diagrams\*.drawio`.
+- Los diagramas maestros viven en `docs/diagrams/*.drawio`.
 - Los diagramas incrustados viven dentro del `.md` que los explica.
 - Nombra el archivo por lo que muestra y su momento:
   `soma-frontend-antes.drawio`, `soma-architecture.drawio`.

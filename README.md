@@ -160,9 +160,10 @@ En orden. El detalle está en [`docs/PLAN-INGESTA-FACTURAS.md`](docs/PLAN-INGEST
 6. **Cron de ingesta.** Último, y el único costo fijo del plan: $1/mes en Render.
    Un cron solo *agenda* un comando que ya funciona.
 
-Pendiente de decidir, fuera del plan: el bundle de documentación OKF vive en
-`C:\proyectos_ia\docs`, **fuera de control de versiones**. Quien clone este
-repositorio no recibe ningún ADR.
+Resuelto: el bundle de documentación OKF vive en `docs/` de este repositorio
+(ver `docs/index.md`). Quien clone recibe los ADRs con el código que describen.
+El razonamiento de qué se versiona aquí y qué se queda en la máquina está en
+`docs/SOMA-ADR-007-frontera-de-la-documentacion.md`.
 
 ## Seguridad
 

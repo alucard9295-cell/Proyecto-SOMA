@@ -1,0 +1,100 @@
+<mxfile host="app.diagrams.net" agent="claude-code/opus-5" version="24.0.0">
+  <diagram name="SOMA arquitectura destino" id="soma-target">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="user" value="Navegador&#10;(1 usuario)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="360" width="120" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vercel" value="Vercel — CDN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="60" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="web" value="React / Vite (estático)&#10;src/App.jsx&#10;solo VITE_API_BASE" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="270" y="95" width="200" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="railway" value="Railway — contenedor (Dockerfile de api/)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;verticalAlign=top;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="250" width="440" height="330" as="geometry" />
+        </mxCell>
+
+        <mxCell id="interface" value="interface/ — routes, dependencies, main&#10;REST + SSE. Handlers delgados." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="275" y="290" width="390" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="application" value="application/ — servicios de caso de uso + ports (Protocol)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="275" y="360" width="390" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="domain" value="domain/ — costing (AIU/IVA), scheduling, remodeling&#10;SIN framework: ni FastAPI, ni sqlite3, ni LangChain" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="275" y="430" width="390" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="infra" value="infrastructure/ — persistence · llm · mcp · storage" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="275" y="505" width="390" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="worker" value="Worker de documentos&#10;(fase posterior)&#10;sin puerto expuesto" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;dashed=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="740" y="250" width="170" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="neon" value="Neon — Postgres serverless" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;verticalAlign=top;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="390" width="290" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="pg" value="Postgres + pgvector&#10;&#10;esquemas: bronze · silver · gold · ops&#10;branches: main / stg / dev&#10;tabla de jobs (SKIP LOCKED)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="765" y="425" width="240" height="135" as="geometry" />
+        </mxCell>
+
+        <mxCell id="llm" value="Proveedor LLM&#10;(HTTPS saliente)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="770" y="120" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;" edge="1" parent="1" source="user" target="web">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1l" value="HTTPS" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e1">
+          <mxGeometry x="-0.1" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;" edge="1" parent="1" source="user" target="interface">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2l" value="JSON (REST)&#10;+ SSE del agente" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e2">
+          <mxGeometry x="-0.2" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="interface" target="application">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="application" target="domain">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="implementa ports" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="infra" target="application">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;" edge="1" parent="1" source="infra" target="pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6l" value="TLS 5432" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e6">
+          <mxGeometry x="-0.1" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="worker" target="pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7l" value="tabla de jobs&#10;(no HTTP)" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e7">
+          <mxGeometry x="-0.1" relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="infra" target="llm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="note" value="Regla de dependencia: las flechas apuntan hacia adentro.&#10;domain/ no importa ninguna otra capa ni framework.&#10;Cambiar de motor o de proveedor se limita a infrastructure/." style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#f5f5f5;strokeColor=#999999;align=left;verticalAlign=top;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="600" width="330" height="90" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

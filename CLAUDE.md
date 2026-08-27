@@ -18,7 +18,7 @@ repos.
 | Web | raíz (`src/`) | React 19 + Vite | Vercel |
 | API | `api/` | FastAPI + uv, Python 3.12 | Railway (Dockerfile) |
 
-Documentación viva: bundle OKF en `C:\proyectos_ia\docs` (ver `index.md`).
+Documentación viva: bundle OKF en `docs/` de este repositorio (ver `docs/index.md`).
 Toda decisión de arquitectura se registra ahí como ADR, no en comentarios de código.
 
 ## Comandos
