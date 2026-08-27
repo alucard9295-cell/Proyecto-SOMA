@@ -1,8 +1,8 @@
 ---
 type: Deployment Guide
-title: SOMA deployment guide for Vercel and FastAPI
-description: Step-by-step deployment model for the Vercel frontend and separately hosted FastAPI API.
-tags: [soma, deployment, vercel, fastapi, docker, cloud-run]
+title: SOMA deployment guide — Render blueprint
+description: Pasos de despliegue de la web estática y del API FastAPI, ambos declarados en render.yaml.
+tags: [soma, deployment, render, neon, fastapi, docker]
 status: draft
 generated: { by: human:product-soma, at: 2026-08-11T00:00:00Z }
 sources:
@@ -14,26 +14,31 @@ sources:
     title: SOMA architecture plan
 ---
 
-# Recommended topology
+# Topología
+
+Un solo proveedor de ejecución, declarado en `render.yaml` en la raíz del
+repositorio — Render lo busca **solo ahí**. El razonamiento está en
+[ADR-008](/SOMA-ADR-008-stack-de-despliegue.md).
 
 ```text
-Vercel
-  React/Vite static frontend
-       |
-       | HTTPS, JSON and SSE
-       v
-Container host
-  FastAPI API
-       |-- managed Postgres or persistent SQLite volume
-       |-- object storage for PDFs
-       |-- queue and document worker
-       `-- provider secrets
+Render · static                 Render · docker              Neon
+  soma-web  (dist/)  --HTTPS-->  soma-api (FastAPI)  --TLS-->  Postgres+pgvector
+  React 19 + Vite                api/Dockerfile                (destino; hoy SQLite
+  rewrite de SPA                 healthcheck /health            en disco efímero)
 ```
 
-Vercel is the right home for the web build. It is not the right home for a
-long-running PDF/OCR worker or a persistent SQLite file. Deploying the current
-FastAPI container to a host with a persistent disk is the fastest demo path;
-Cloud Run plus Postgres and object storage is the safer production path.
+Dos consecuencias que sorprenden si no se avisan:
+
+- **CORS hace falta.** Render da un dominio por servicio, así que web y API son
+  orígenes distintos. En local no pasa porque Caddy los sirve tras el mismo
+  origen.
+- **El API gratuito duerme.** Tras inactividad, la primera petición tarda
+  decenas de segundos. No es un fallo del despliegue. Se quita con el plan
+  Starter ($7/mes) cuando el uso sea diario.
+
+**Nota histórica:** hasta agosto de 2026 esta guía describía Vercel para la web.
+Se descartó porque su plan Hobby prohíbe el uso comercial y SOMA sirve trabajo
+facturable. `vercel.json` sigue en el repositorio pero ya no se usa.
 
 # 1. Prepare the repository
 
@@ -107,31 +112,34 @@ deploying.
 
 # 4. Configure the API domain and CORS
 
-Use a stable HTTPS API domain, for example `api.soma.example.com`. Point DNS to
-the container platform and set:
+Use a stable HTTPS API domain, for example `api.soma.example.com`. Mientras no haya dominio propio,
+Render asigna uno por servicio. Configurar:
 
 ```text
-CORS_ORIGINS=https://soma.example.com,https://<vercel-project>.vercel.app
+CORS_ORIGINS=https://soma-web.onrender.com
 ALLOWED_HOSTS=api.soma.example.com
 ```
 
 Do not use `*` with credentials. The browser must call the API through HTTPS;
 mixed HTTP/HTTPS requests will be blocked.
 
-# 5. Deploy the frontend to Vercel
+# 5. Desplegar con el blueprint
 
-1. Import the GitHub repository into Vercel.
-2. Set the root directory to the repository root, not `api/`.
-3. Framework preset: Vite.
-4. Build command: `npm run build`.
-5. Output directory: `dist`.
-6. Add `VITE_API_BASE=https://api.soma.example.com` in Preview and Production.
-7. Deploy a preview and verify the browser network calls use that API origin.
-8. Add the final Vercel domain to `CORS_ORIGINS` on the API.
+No hay pasos de dashboard que recordar: `render.yaml` declara los dos servicios.
 
-`VITE_API_BASE` is public configuration. Never put `AGENT_API_KEY`,
-`JWT_SECRET`, database credentials or MCP credentials in Vercel variables named
-`VITE_*`.
+1. En Render, **New → Blueprint** y apuntar al repositorio
+   `alucard9295-cell/Proyecto-SOMA`.
+2. Render lee `render.yaml` de la raíz y crea `soma-web` y `soma-api`.
+3. `JWT_SECRET` lo genera Render (`generateValue: true`) y lo mantiene entre
+   despliegues. **No ponerlo a mano.**
+4. Los secretos de proveedor (`AGENT_API_KEY`, credenciales de MCP) se cargan a
+   mano en el dashboard del servicio. Nunca en el repositorio.
+5. Una vez creado `soma-web`, poner su dominio real en `CORS_ORIGINS` de
+   `soma-api`, y el dominio de `soma-api` en `VITE_API_BASE` de `soma-web`.
+
+`VITE_API_BASE` es configuración **pública** por definición: viaja al navegador
+dentro del bundle. Nunca poner `AGENT_API_KEY`, `JWT_SECRET` ni credenciales de
+base de datos en una variable `VITE_*` — es el invariante 6 del proyecto.
 
 # 6. Smoke test after deployment
 
@@ -146,19 +154,20 @@ Then verify, in order:
 3. Invalid login returns 401 and valid login returns a token.
 4. The protected summary rejects requests without a Bearer token.
 5. The simulator rejects negative values and returns deterministic results.
-6. A browser request from the Vercel origin passes CORS.
+6. A browser request from the Render web origin passes CORS.
 7. Logs do not contain provider keys, passwords or JWTs.
 
 # 7. When to add the worker
 
-Do not add PDF processing to the first Vercel deployment. Implement the API
+Do not add PDF processing to the first deployment. Implement the API
 contract and a fake queue first, then deploy a worker beside the API. The
 worker needs object storage, retry policy, dead-letter handling, memory/time
 limits and an idempotency key based on the document hash.
 
 # Rollback checklist
 
-- Keep the previous frontend deployment available in Vercel.
+- Keep the previous frontend deployment available in Render (rollback a un
+  deploy anterior desde el dashboard del servicio).
 - Roll back the API image without deleting the database or bucket.
 - Apply backward-compatible migrations before deploying code that reads them.
 - Restore a database backup in staging before using it in production.

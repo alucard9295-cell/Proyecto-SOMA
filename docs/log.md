@@ -1,5 +1,28 @@
 # Log
 
+## 2026-08-27
+
+- [ADR-008](SOMA-ADR-008-stack-de-despliegue.md): stack de despliegue. **Render
+  para web y API, Neon para datos.** Se descarta Vercel por una razón que no es
+  técnica: su plan Hobby prohíbe el uso comercial, y SOMA sirve trabajo
+  facturable de un despacho, así que la opción «gratis» costaba $20/mes de Pro.
+  Render static es gratuito y sí permite uso comercial. Se descarta Railway
+  ($5/mes) porque a escala de un usuario repartir web y API entre dos
+  proveedores no compra nada. Total real: **~$1/mes**, el dominio. Contrapartida
+  aceptada: el API gratuito de Render duerme y la primera petición tarda decenas
+  de segundos; la salida es el plan Starter a $7/mes cuando el uso sea diario.
+  Sustituye la elección de proveedores del ADR-001 y la tabla de costos previa.
+
+- [ADR-007](SOMA-ADR-007-frontera-de-la-documentacion.md): el bundle OKF pasa al
+  repositorio; la doctrina transversal y la infraestructura de memoria se quedan
+  fuera a propósito.
+
+- Diagramas rehechos: tres, uno por pregunta, en lectura izquierda→derecha y con
+  franja transversal. Y una corrección de fondo — pintaban el **destino** como si
+  fuera el **presente**. Verificado contra el código: hoy es Render (no Vercel ni
+  Railway), SQLite en disco efímero (no Neon), sin bucket R2 y sin cron. Trazo
+  sólido pasa a significar «existe hoy»; punteado, «decidido, sin construir».
+
 ## 2026-08-25
 
 - [ADR-006](SOMA-ADR-006-ingesta-documental.md): ingesta documental. Se decide el

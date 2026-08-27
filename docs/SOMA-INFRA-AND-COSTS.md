@@ -47,17 +47,19 @@ curl http://127.0.0.1:8000/ready      # {"status":"ready"}
 
 # Topología destino (producción)
 
+Un solo proveedor de ejecución. Ver [ADR-008](/SOMA-ADR-008-stack-de-despliegue.md)
+para por qué se descartaron Vercel y Railway.
+
 ```mermaid
-flowchart TB
+flowchart LR
   user["Navegador"]
-  subgraph vercel["Vercel — CDN global"]
-    web["React estático<br/>VITE_API_BASE → API"]
+  subgraph rweb["Render · sitio estático"]
+    web["React 19 + Vite<br/>VITE_API_BASE → API"]
   end
-  subgraph railway["Railway — contenedor"]
-    api["FastAPI :8080<br/>Dockerfile de api/"]
-    worker["Worker de documentos<br/>(fase posterior)"]
+  subgraph rapi["Render · contenedor Docker"]
+    api["FastAPI<br/>api/Dockerfile"]
   end
-  subgraph neon["Neon — Postgres serverless"]
+  subgraph neon["Neon · Postgres serverless"]
     pg[("Postgres + pgvector<br/>branches: main / stg / dev")]
   end
   llm["Proveedor LLM<br/>(HTTPS saliente)"]
@@ -65,57 +67,55 @@ flowchart TB
   user -->|"HTTPS"| web
   user -->|"HTTPS JSON + SSE"| api
   api -->|"TLS 5432"| pg
-  worker -->|"TLS 5432"| pg
   api -->|"HTTPS"| llm
-  worker -->|"tabla de jobs"| pg
 ```
 
 Diferencias clave con local:
 
-- **Caddy desaparece.** Railway ya termina TLS y asigna dominio. Mantener un
-  proxy propio duplicaría una función gestionada. El requisito de no bufferizar
-  SSE se traslada a la configuración de Railway.
-- **El puerto lo asigna la plataforma.** Railway inyecta `PORT`; el `CMD` debe
+- **Caddy desaparece.** Render termina TLS y da dominio por servicio. La
+  consecuencia incómoda: web y API pasan a ser **orígenes distintos**, así que
+  CORS sí hace falta en producción aunque en local no.
+- **El puerto lo asigna la plataforma.** Render inyecta `PORT`; el `CMD` debe
   respetarlo (`--port ${PORT:-8000}`), no fijar 8000.
 - **El volumen desaparece** al migrar a Neon: el estado sale del contenedor, que
   pasa a ser efímero y reemplazable.
-- **El worker no expone puerto.** Se comunica por la tabla de jobs
-  ([ADR-003](/SOMA-ADR-003-layering-and-boundaries.md)), no por HTTP.
+- **Hoy todavía no es así.** El API corre con `DATABASE_PATH` sobre SQLite en
+  disco efímero: la base se reinicia en cada despliegue. Sirve para probar, no
+  para datos reales. Lo resuelve [ADR-004](/SOMA-ADR-004-postgres-pgvector.md).
 
 ## Variables por entorno
 
-| Variable | Vercel | Railway | Nota |
+| Variable | Render · web | Render · API | Nota |
 | --- | --- | --- | --- |
-| `VITE_API_BASE` | ✅ | — | Única variable del frontend. Pública por definición |
-| `DATABASE_URL` | — | ✅ | Cadena de Neon, incluye la branch |
-| `JWT_SECRET` | — | ✅ | Rotar antes de exponer |
-| `CORS_ORIGINS` | — | ✅ | Dominio exacto de Vercel |
-| `ALLOWED_HOSTS` | — | ✅ | Dominio de Railway |
-| `AGENT_API_KEY` | — | ✅ | Nunca en `VITE_*` |
-| `ENVIRONMENT` | — | ✅ | `production` obliga a `JWT_SECRET` propio |
+| `VITE_API_BASE` | OK | — | Única variable del frontend. Pública por definición |
+| `DATABASE_PATH` | — | OK | Hoy: ruta del SQLite efímero |
+| `DATABASE_URL` | — | OK | Destino: cadena de Neon, incluye la branch |
+| `JWT_SECRET` | — | OK | Render lo genera y lo mantiene entre despliegues |
+| `CORS_ORIGINS` | — | OK | Dominio exacto del sitio de Render |
+| `ALLOWED_HOSTS` | — | OK | Dominio del API en Render |
+| `AGENT_API_KEY` | — | OK | Nunca en `VITE_*` |
+| `ENVIRONMENT` | — | OK | `production` obliga a `JWT_SECRET` propio |
 
 
-# Quién hace qué: Vercel, Railway, Render y Neon
+# Quién hace qué: Render y Neon
 
-Es la confusión más común y vale aclararla: **no son cuatro opciones que
-compiten**. Son tres capas distintas, y en una de ellas hay que elegir.
+Es la confusión más común y vale aclararla: **no compiten**. Son dos capas
+distintas y cada una hace algo que la otra no.
 
 | Capa | Qué guarda o ejecuta | Proveedor |
 | --- | --- | --- |
-| Sitio web | HTML, CSS, JS ya compilados. No tiene estado | **Vercel** |
-| Backend | El proceso FastAPI: recibe peticiones, calcula, responde | **Railway** *o* **Render** — se elige uno |
+| Sitio web | HTML, CSS, JS ya compilados. No tiene estado | **Render** (static) |
+| Backend | El proceso FastAPI: recibe peticiones, calcula, responde | **Render** (docker) |
 | Base de datos | Los datos que sobreviven a un reinicio | **Neon** (Postgres gestionado) |
 
-- **Railway y Render sí compiten** entre sí: ambos ejecutan tu contenedor.
-  Railway cuesta $5/mes; el plan gratuito de Render duerme el servicio tras
-  inactividad y la primera petición tarda decenas de segundos.
-- **Neon no compite con ninguno.** Es *dónde viven los datos*. Aunque Railway
-  también ofrece Postgres, Neon lo hace mejor para este caso: escala a cero,
-  incluye `pgvector` y permite branches por entorno.
-- **Vercel no compite con nada de lo anterior**: solo sirve archivos estáticos.
+- **Neon no compite con Render.** Es *dónde viven los datos*. Render también
+  ofrece Postgres, pero Neon escala a cero, incluye `pgvector` y da branches por
+  entorno, que es lo que pide [ADR-004](/SOMA-ADR-004-postgres-pgvector.md).
+- **Un solo proveedor de ejecución es deliberado**: un dashboard, una factura,
+  un sitio donde mirar logs. A escala de un usuario, repartir web y API entre
+  dos proveedores añade coordinación sin comprar nada.
 
-Analogía: Vercel es la vitrina, Railway/Render es la cocina, Neon es la
-despensa. Se necesitan las tres.
+Analogía: Render es la vitrina y la cocina; Neon es la despensa.
 
 # Dónde van los PDF y los Excel
 
@@ -176,34 +176,34 @@ Para **un usuario**, tráfico bajo y una base pequeña. Precios de agosto 2026.
 
 | Componente | Plan | Coste/mes |
 | --- | --- | --- |
-| Frontend (Vercel) | Hobby | **$0** ⚠️ ver nota |
-| Backend (Railway) | Hobby | **$5** (incluye $5 de consumo) |
-| Postgres + pgvector (Neon) | Free | **$0** (0.5 GB, 100 CU-h, scale-to-zero) |
+| Frontend (Render static) | Free | **$0** |
+| Backend (Render web) | Free | **$0** — duerme, ver abajo |
+| Postgres + pgvector (Neon) | Free | **$0** (0,5 GB, 100 CU-h, scale-to-zero) |
 | Dominio `.com` | anual ~$12 | **~$1** |
 | LLM | por uso | **$0–10** según conversaciones |
-| | **Total** | **~$6–16 / mes** |
+| | **Total** | **~$1–11 / mes** |
 
-⚠️ **El punto de mayor riesgo de coste no es técnico, es de licencia.** El plan
-Hobby de Vercel es **solo para uso no comercial**. Si SOMA se usa para trabajo
-facturable de un despacho, corresponde el plan Pro (**$20/mes**), lo que sube el
-total a **~$26–36/mes**. Conviene decidirlo antes de publicar, no después.
+El único coste que no es opcional es el dominio. Todo lo demás es plan gratuito
+y con uso comercial permitido.
 
-## Cuándo sube
+## Los tres límites que sí importan
 
-- **Railway:** el crédito de $5 cubre un contenedor pequeño. Se supera con
-  procesamiento continuo de PDFs; el consumo se cobra por RAM (~$10/GB-mes) y
-  vCPU (~$20/vCPU-mes).
-- **Neon Free:** 0.5 GB. Los PDFs originales de `bronze` la llenan rápido — por
-  eso los binarios deben ir a almacenamiento de objetos y en Postgres solo la
-  referencia y el hash. Siguiente escalón: Launch $19/mes.
-- **LLM:** es el único coste que crece con el uso real del asesor.
+- **El API gratuito de Render duerme** tras un rato sin tráfico, y la primera
+  petición después tarda decenas de segundos. Aceptable para demos y uso
+  esporádico; deja de serlo el día que alguien lo use a diario. Salida: plan
+  Starter, **$7/mes**, y deja de dormir. Es el primer gasto que va a aparecer, y
+  aparecerá por uso real, no por crecer.
+- **Neon Free son 0,5 GB.** Los PDF originales la llenan rápido. Por eso los
+  binarios no van en Postgres: van a almacenamiento de objetos y en la base solo
+  queda la referencia y el hash.  Siguiente escalón: Launch $19/mes.
+- **El LLM** es el único coste que crece con el uso real del asesor.
 
-## Alternativa a $0
+## Lo que este stack ya evitó
 
-Neon Free + Vercel Hobby + Render Free para el API. Render duerme el servicio
-gratuito tras inactividad: la primera petición tarda decenas de segundos. Es
-aceptable para demos, no para uso diario — y `render` ya está instalado en la
-máquina si se quiere probar.
+El plan Hobby de Vercel es **solo para uso no comercial**. SOMA sirve trabajo
+facturable de un despacho, así que habría correspondido Pro a **$20/mes** — más
+que todo el resto junto. Render static es gratuito y permite uso comercial. Ver
+[ADR-008](/SOMA-ADR-008-stack-de-despliegue.md).
 
 # Observabilidad y depuración
 

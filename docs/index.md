@@ -16,7 +16,7 @@ Bundle OKF v0.2. Un archivo = un concepto. Convenciones de escritura en la skill
 * [SOMA architecture and deployment](SOMA.md) - Current system boundaries and operational state.
 * [SOMA PRD](SOMA-PRD.md) - Product scope, requirements and non-goals.
 * [Architecture plan 2026-08-11](SOMA-ARCHITECTURE-PLAN-2026-08-11.md) - Target architecture and phased backlog.
-* [Deployment guide](SOMA-DEPLOYMENT-GUIDE.md) - Vercel frontend and separately deployed API.
+* [Deployment guide](SOMA-DEPLOYMENT-GUIDE.md) - Pasos de despliegue de la web y del API.
 
 ## Datos e infraestructura
 
@@ -50,6 +50,7 @@ repositorio.
 * [ADR-005 endurecimiento de seguridad](SOMA-ADR-005-security-hardening.md) - Sesión por cookie, rol, y plan de pruebas ofensivas (planificado, sin implementar).
 * [ADR-006 ingesta documental](SOMA-ADR-006-ingesta-documental.md) - Origen `inbox/` en bucket, disparo por cron en Render, XML DIAN antes que PDF y parsers tras un puerto único.
 * [ADR-007 frontera de la documentación](SOMA-ADR-007-frontera-de-la-documentacion.md) - Por qué el bundle OKF vive en el repositorio y por qué la doctrina transversal y la infraestructura de memoria se quedan fuera.
+* [ADR-008 stack de despliegue](SOMA-ADR-008-stack-de-despliegue.md) - Render para web y API, Neon para datos; por qué se descartan Vercel y Railway.
 
 ## Planes de trabajo
 

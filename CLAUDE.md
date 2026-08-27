@@ -15,8 +15,13 @@ repos.
 
 | Unidad | Ruta | Stack | Destino |
 | --- | --- | --- | --- |
-| Web | raíz (`src/`) | React 19 + Vite | Vercel |
-| API | `api/` | FastAPI + uv, Python 3.12 | Railway (Dockerfile) |
+| Web | raíz (`src/`) | React 19 + Vite | Render static |
+| API | `api/` | FastAPI + uv, Python 3.12 | Render web (`api/Dockerfile`) |
+
+Despliegue declarado en `render.yaml`, en la raíz. Un solo proveedor a
+propósito; ver `docs/SOMA-ADR-008-stack-de-despliegue.md`. El plan gratuito del
+API **duerme** tras inactividad: la primera petición tarda decenas de segundos,
+y no es un fallo.
 
 Documentación viva: bundle OKF en `docs/` de este repositorio (ver `docs/index.md`).
 Toda decisión de arquitectura se registra ahí como ADR, no en comentarios de código.

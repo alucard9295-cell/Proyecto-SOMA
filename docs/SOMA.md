@@ -21,12 +21,12 @@ SOMA se mantiene como un monorepo con dos unidades de despliegue:
 
 | Unidad | Ubicacion | Responsabilidad | Destino recomendado |
 | --- | --- | --- | --- |
-| Web | raiz del repositorio | React/Vite, landing publica y control room | Vercel |
-| API | `api/` | FastAPI, autenticacion, SQLite y futuros modulos | Docker en un host con volumen persistente |
+| Web | raiz del repositorio | React/Vite, landing publica y control room | Render static |
+| API | `api/` | FastAPI, autenticacion, SQLite y futuros modulos | Render web (docker) |
 
 Esta separacion evita colocar secretos o estado mutable en el frontend. No es
-necesario crear dos repositorios para tener dos despliegues: Vercel puede usar la
-raiz como proyecto web y el API puede construirse desde `api/`. Se creara un
+necesario crear dos repositorios para tener dos despliegues: `render.yaml`
+declara los dos servicios desde un mismo repositorio. Se creara un
 repositorio separado solo si el ciclo de vida, el equipo o los permisos del API
 dejan de coincidir con los del producto web.
 
@@ -88,7 +88,7 @@ SQLite es adecuado para el comienzo y para una instancia pequena del API:
 - `users` contiene identidad, rol, estado y hash de contrasena.
 - La ruta se controla con `DATABASE_PATH`.
 - Docker monta un volumen llamado `soma_data` en `/app/data`.
-- El archivo SQLite no se commitea ni se copia a Vercel.
+- El archivo SQLite no se commitea ni se sube al servicio desplegado.
 
 Cuando existan multiples replicas, escrituras concurrentes frecuentes o
 necesidad de backups administrados, migrar la fuente de verdad a Postgres. El
@@ -132,19 +132,24 @@ reinicios. Para produccion, usar un volumen administrado y backups probados.
 
 ## Despliegue
 
-### Vercel: web
+### Render: web y API
 
-1. Importar el repositorio `alucard9295-cell/Proyecto-SOMA`.
-2. Usar la raiz del repositorio como Root Directory.
-3. Build command: `npm run build`.
-4. Output directory: `dist`.
-5. Definir `VITE_API_BASE` en Preview y Production apuntando al dominio HTTPS
-   del API.
-6. Configurar rewrite de SPA si se necesitan rutas directas como `/ventas`.
+Ambos servicios estan declarados en `render.yaml`, en la raiz del repositorio.
+Render lo busca **solo ahi**. No hay pasos manuales de dashboard que recordar:
+el blueprint fija build, rutas, cabeceras y variables.
 
-Vercel puede ejecutar Python, pero su filesystem no debe tratarse como disco
-persistente para SQLite. Ademas, cargas PDF, embeddings y procesos largos deben
-evaluarse contra los limites de funciones antes de moverlos a serverless.
+- `soma-web`: runtime `static`, build `npm ci && npm run build`, publica `dist`.
+  Incluye el rewrite de SPA para que `/ventas` no devuelva 404, y las cabeceras
+  de seguridad.
+- `soma-api`: runtime `docker` desde `api/Dockerfile`, healthcheck en `/health`.
+
+El plan gratuito del API **duerme** tras inactividad: la primera peticion tarda
+decenas de segundos. Ver [ADR-008](SOMA-ADR-008-stack-de-despliegue.md) para el
+razonamiento del stack y cuando toca pagar el plan Starter.
+
+Nota historica: hasta agosto de 2026 la web iba a ir en Vercel. Se descarto
+porque su plan Hobby prohibe el uso comercial, y SOMA sirve trabajo facturable.
+`vercel.json` sigue en el repositorio pero ya no se usa.
 
 ### API: Docker
 
@@ -170,7 +175,7 @@ npm run build
 uv run --directory api pytest
 ```
 
-El despliegue web puede ser automatico desde GitHub hacia Vercel. El despliegue
+El despliegue web puede ser automatico desde GitHub hacia Render. El despliegue
 del API debe construir una imagen desde `api/`, ejecutar smoke tests contra
 `/health`, y solo despues cambiar el servicio de produccion. La base de datos no
 se versiona como archivo: el esquema debe evolucionar mediante migraciones
@@ -180,7 +185,8 @@ repetibles.
 
 - No commitear `.env`, `api/data/`, tokens ni dumps de SQLite.
 - Cambiar la cuenta `admon` y `JWT_SECRET` antes de compartir el API.
-- Restringir `CORS_ORIGINS` al dominio real de Vercel en produccion.
+- Restringir `CORS_ORIGINS` al dominio real del sitio en Render. En produccion
+  web y API son origenes distintos, asi que CORS si hace falta aunque en local no.
 - Anadir rate limiting y auditoria de login antes de exponer el panel.
 - No devolver si un usuario existe; el login usa un error generico.
 - Configurar alertas para errores 5xx, latencia, disco del volumen y fallos de
@@ -215,9 +221,5 @@ engineering y data integrity.
   skills y workflows para agentes de desarrollo.
 - [uv: proyectos](https://docs.astral.sh/uv/guides/projects/): estructura,
   lockfile y ejecucion reproducible.
-- [Vercel: backends](https://vercel.com/docs/frameworks/backend): opciones de
-  FastAPI y limites del modelo serverless.
-- [Vercel: Python runtime](https://vercel.com/docs/functions/runtimes/python):
-  entrypoints y dependencias.
 - [GitHub: duplicar repositorios](https://docs.github.com/en/repositories/creating-and-managing-repositories/duplicating-a-repository):
   referencia para separar repositorios si la organizacion lo requiere.
