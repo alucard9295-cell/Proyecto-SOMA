@@ -13,8 +13,12 @@ la instalacion puede fallar por esas dependencias.
 cd tools/deepseek_ocr_test
 uv venv --python 3.12
 uv pip install --python .venv/Scripts/python.exe -r requirements.txt
+uv pip install --python .venv/Scripts/python.exe torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu118
 uv pip install --python .venv/Scripts/python.exe flash-attn --no-build-isolation
 ```
+
+En Windows, `flash-attn` puede no instalarse. La aplicacion intenta usarlo y
+cae automaticamente a atencion `eager` para esta prueba.
 
 ## Ejecutar
 

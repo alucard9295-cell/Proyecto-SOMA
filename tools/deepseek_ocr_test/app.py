@@ -15,12 +15,20 @@ def load_model():
     from transformers import AutoModel, AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
-    model = AutoModel.from_pretrained(
-        MODEL_NAME,
-        trust_remote_code=True,
-        use_safetensors=True,
-        _attn_implementation="flash_attention_2",
-    )
+    try:
+        model = AutoModel.from_pretrained(
+            MODEL_NAME,
+            trust_remote_code=True,
+            use_safetensors=True,
+            _attn_implementation="flash_attention_2",
+        )
+    except (ImportError, ValueError):
+        model = AutoModel.from_pretrained(
+            MODEL_NAME,
+            trust_remote_code=True,
+            use_safetensors=True,
+            _attn_implementation="eager",
+        )
     return tokenizer, model.eval().cuda().to(torch.bfloat16)
 
 
