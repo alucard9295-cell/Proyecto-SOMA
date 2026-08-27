@@ -85,11 +85,26 @@ draw.io trae ~10.400 formas indexadas en
 `~/.claude/plugins/marketplaces/drawio/shape-search/search-index.json`. Buscar ahí
 el `style` exacto antes de usarlo; inventar un `shape=` produce una caja vacía.
 
-**No existen** iconos de Vercel, Railway, Neon, Cloudflare, React ni FastAPI.
-Sí existen Docker, PostgreSQL, bucket de almacenamiento, CronJob de Kubernetes,
-navegador y OpenAI. Para lo que no tiene icono, pastilla con el color de marca —
-y para nodos que son código puro, **ninguna insignia**: una letra suelta no
-significa nada y ensucia.
+**No existen** iconos de Vercel, Railway, Neon, Cloudflare, React ni FastAPI, y
+el de PostgreSQL que sí trae es una versión genérica de Alibaba Cloud.
+
+Para esos se usan los logos reales de **Simple Icons**, ya descargados en
+`docs/diagrams/_generador/logos/` y convertidos a data URI en `logos.py`. Se
+incrustan en el XML, no se enlazan: el `.drawio` queda autocontenido y no depende
+de una URL que puede morir. Añadir una marca nueva:
+
+```bash
+curl -o logos/<slug>.svg https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/<slug>.svg
+# luego añadir el slug y su hex de marca al dict HEX y regenerar logos.py
+```
+
+Los archivos de Simple Icons son CC0; las marcas siguen siendo de sus dueños —
+uso nominativo en un diagrama interno.
+
+Regla que sigue en pie: para nodos que son **código puro** (`costing`,
+`scheduling`, servicios de caso de uso), **ninguna insignia**. Un logo ahí miente
+sobre la tecnología, y una letra suelta no significa nada. Comprobado por las
+malas: se puso el logo de React sobre la capa `application/`, que es Python.
 
 ## Reglas de legibilidad
 

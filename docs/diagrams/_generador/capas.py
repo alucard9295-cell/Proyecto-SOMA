@@ -13,13 +13,13 @@ for key, title, color in [
 ]:
     d.band(title, y, BH, color); ys[key] = y + 42; y += BH + BAND_GAP
 
-d.row([dict(key='routes', label='routes  ·  main', sub='FastAPI, validación de entrada'),
-       dict(key='deps',   label='dependencies',   sub='sesión por cookie, rol')], ys['IN'])
+d.row([dict(key='routes', label='routes  ·  main', sub='FastAPI, validación de entrada', icon='fastapi'),
+       dict(key='deps',   label='dependencies',   sub='sesión por cookie, rol', icon='fastapi')], ys['IN'])
 d.row([dict(key='svc', label='Servicios de caso de uso', sub='orquestan, no calculan')], ys['APP'])
 d.row([dict(key='cost',  label='costing', sub='AIU, IVA  ·  Decimal, nunca float'),
        dict(key='sched', label='scheduling', sub='duración y cronograma de obra')], ys['DOM'])
-d.row([dict(key='repo', label='repositories.py', sub='todo el SQL  ·  puertos',       icon='postgres'),
-       dict(key='migr', label='migrations.py',   sub='única vía de cambio de esquema', icon='postgres')], ys['INFRA'])
+d.row([dict(key='repo', label='repositories.py', sub='todo el SQL  ·  puertos',       icon='postgresql'),
+       dict(key='migr', label='migrations.py',   sub='única vía de cambio de esquema', icon='postgresql')], ys['INFRA'])
 
 d.edge('routes', 'svc', 'petición validada', ports=(0.5,1,0.25,0))
 d.edge('deps',   'svc', 'identidad',         ports=(0.5,1,0.75,0))

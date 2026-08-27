@@ -20,12 +20,12 @@ for key, title, color in [
 
 d.row([dict(key='cliente', label='Cliente / visitante', sub='sitio público de ventas', icon='browser'),
        dict(key='duenio',  label='Dueño del producto',  sub='control room admin',      icon='user')], ys['PERSONAS'])
-d.row([dict(key='web', label='Web SOMA', sub='React 19 + Vite  ·  estático', brand='vercel')], ys['BORDE'])
+d.row([dict(key='web', label='Web SOMA', sub='React 19 + Vite  ·  estático', icon='vercel', brand='vercel')], ys['BORDE'])
 d.row([dict(key='api', label='API SOMA',   sub='FastAPI + uv  ·  Python 3.12', icon='docker'),
        dict(key='llm', label='Asesor LLM', sub='SSE  ·  no calcula cifras',    icon='openai')], ys['APP'])
-d.row([dict(key='cron', label='Cron de ingesta', sub='una sola corrida activa', icon='cron')], ys['INGESTA'])
-d.row([dict(key='pg', label='Postgres + pgvector', sub='Neon  ·  entorno por branch',   icon='postgres'),
-       dict(key='r2', label='Bucket privado',      sub='Cloudflare R2  ·  inbox/',      icon='bucket')], ys['DATOS'])
+d.row([dict(key='cron', label='Cron de ingesta', sub='una sola corrida activa', icon='render')], ys['INGESTA'])
+d.row([dict(key='pg', label='Postgres + pgvector', sub='Neon  ·  entorno por branch',   icon='postgresql'),
+       dict(key='r2', label='Bucket privado',      sub='Cloudflare R2  ·  inbox/',      icon='cloudflare')], ys['DATOS'])
 
 d.edge('cliente', 'web', 'HTTPS')
 d.edge('duenio',  'web', 'cookie de sesión')

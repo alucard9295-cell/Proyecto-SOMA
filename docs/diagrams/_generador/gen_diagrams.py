@@ -18,7 +18,9 @@ ICON = {
  'openai':   'image;aspect=fixed;html=1;points=[];align=center;image=img/lib/azure2/ai_machine_learning/Azure_OpenAI.svg;',
  'pdf':      'dashed=0;outlineConnect=0;html=1;align=center;shape=mxgraph.webicons.adobe_pdf;fillColor=#F40C0C;gradientColor=#610603',
 }
-# Marcas sin icono en draw.io: se resuelven con pastilla de color de marca.
+# Marcas que draw.io NO trae: logo real incrustado (ver logos.py) + color de acento.
+from logos import LOGO
+ICON.update(LOGO)
 BRAND = {'vercel':'#000000','railway':'#8A3FFC','neon':'#00E599',
          'cloudflare':'#F38020','render':'#46E3B7','fastapi':'#009688','react':'#61DAFB'}
 

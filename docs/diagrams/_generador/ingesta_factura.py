@@ -15,13 +15,13 @@ for key, title, color in [
 ]:
     d.band(title, y, BH, color); ys[key] = y + 42; y += BH + BAND_GAP
 
-d.row([dict(key='inbox', label='inbox/  en R2', sub='correo y Drive solo depositan', icon='bucket')], ys['ORIG'])
-d.row([dict(key='cron', label='Cron de ingesta', sub='una sola corrida activa', icon='cron')], ys['DESC'])
+d.row([dict(key='inbox', label='inbox/  en R2', sub='correo y Drive solo depositan', icon='cloudflare')], ys['ORIG'])
+d.row([dict(key='cron', label='Cron de ingesta', sub='una sola corrida activa', icon='render')], ys['DESC'])
 d.row([dict(key='raw', label='bronze.documentos_raw', sub='binario + hash  ·  received', icon='pdf')], ys['RAW'])
 d.row([dict(key='xml', label='Parser XML DIAN', sub='el UBL es la factura'),
        dict(key='pdf', label='Parser PDF',      sub='solo si no hay XML')], ys['PARSE'])
 d.row([dict(key='chk', label='¿Los totales cuadran?', sub='cualquiera de los dos parsers llega aquí')], ys['VAL'])
-d.row([dict(key='ok',  label='silver.facturas', sub='validated  ·  visible en la UI', icon='postgres'),
+d.row([dict(key='ok',  label='silver.facturas', sub='validated  ·  visible en la UI', icon='postgresql'),
        dict(key='rev', label='needs_review',    sub='totales que no cuadran')], ys['OUT'])
 
 d.edge('inbox', 'cron', 'lista el prefijo')
