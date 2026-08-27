@@ -57,7 +57,19 @@ repositorio.
 
 ## Diagramas
 
-* [Arquitectura destino (draw.io)](diagrams/soma-architecture.drawio) - Diagrama maestro editable en diagrams.net.
+Tres historias separadas, no una sola lámina que las mezcle. Cada `.drawio` es el
+maestro editable; el `.svg` de al lado es su render, y se ve directo en GitHub.
+
+| Diagrama | Responde a |
+| --- | --- |
+| [Despliegue](diagrams/soma-despliegue.svg) · [editable](diagrams/soma-despliegue.drawio) | Dónde corre cada cosa y por dónde viaja el dato |
+| [Capas de código](diagrams/soma-capas.svg) · [editable](diagrams/soma-capas.drawio) | Cómo está organizado por dentro y qué regla lo protege |
+| [Ingesta de una factura](diagrams/soma-ingesta-factura.svg) · [editable](diagrams/soma-ingesta-factura.drawio) | El viaje de un PDF desde `inbox/` hasta la pantalla |
+| [Frontend antes del refactor](diagrams/soma-frontend-antes.drawio) | Registro histórico del punto de partida |
+
+La geometría de los tres se genera por script, no a mano: las bandas y la rejilla
+hacen imposibles los solapes y los tamaños dispares que afeaban el diagrama
+anterior. Ver la skill `soma-diagrams`.
 
 Los diagramas incrustados en los documentos son Mermaid: se versionan como texto
 y renderizan directo en GitHub.

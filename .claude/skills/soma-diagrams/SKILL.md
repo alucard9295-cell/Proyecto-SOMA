@@ -43,30 +43,53 @@ siendo editable en draw.io.
 El ejecutable **no está en el PATH**: hay que invocarlo por ruta completa
 (`C:\Program Files\draw.io\draw.io.exe`).
 
-### Limitación verificada en esta máquina
+### Exportación por CLI: cuándo funciona
 
-La exportación por CLI **se cuelga** cuando se invoca desde una sesión no
-interactiva de Claude Code:
+Se creía que el export por CLI se colgaba siempre desde Claude Code. **Es falso.**
+Verificado el 2026-08-26: con una sesión de escritorio activa exporta en segundos
+(`exit=0`, PNG de ~400 KB). Se cuelga solo cuando no hay sesión interactiva —
+entonces el renderer de Electron nunca arranca y el proceso queda al 0 % de CPU.
 
-- `--version` responde en 0,2 s (no arranca Electron).
-- `-x -f png ...` deja procesos con ~0 % de CPU esperando indefinidamente.
-  Probado con `--no-sandbox --disable-gpu` y con un diagrama de dos nodos: mismo
-  resultado.
+Invocar con espera acotada y matar si se pasa, para no bloquear la sesión:
 
-La causa es que la exportación necesita el renderer de Electron, que no arranca
-sin sesión de escritorio interactiva.
+```powershell
+$p = Start-Process 'C:\Program Files\draw.io\draw.io.exe' -PassThru -ArgumentList `
+     @('-x','-f','png','-e','-b','12','-s','2','-o',$out,$src)
+if (-not $p.WaitForExit(90000)) { $p.Kill() } else { "exit=$($p.ExitCode)" }
+```
 
-**Qué hacer entonces:**
+El ejecutable **no está en el PATH**: ruta completa siempre.
 
-1. Escribir el `.drawio` con los nodos en posiciones aproximadas (incluso `0,0`)
-   y **estructura correcta** — nodos y aristas bien definidos.
-2. Pedirle a la persona que ejecute el `--layout` o el export, o que abra el
-   archivo en el escritorio y use *Arrange ▸ Layout*.
-3. Alternativa sin CLI: la salida `url` del skill `drawio` comprime el XML y
-   abre `app.diagrams.net` directamente, sin depender del escritorio.
+## Geometría por script, nunca a mano
 
-No dar por bueno un diagrama afirmando que ELK lo acomodó si el export no se
-pudo ejecutar.
+La regla «no coloques celdas a mano» se cumple generando las coordenadas, no
+confiando en el criterio propio. `docs/diagrams/` se produce con un generador que
+define **bandas horizontales** y centra filas de tarjetas dentro de cada una:
+
+- Todas las tarjetas miden lo mismo (`232×78`). Un tamaño por tipo de nodo, gratis.
+- El espaciado se deriva del número de tarjetas de la fila → **solapes imposibles**.
+- Las aristas declaran puertos (`exitX/entryX`) y, cuando deben rodear una banda,
+  puntos de paso calculados de la rejilla, no inventados.
+
+Comprobación antes de dar nada por bueno:
+
+```python
+# tarjetas del mismo ancho y sin interseccion de rectangulos
+assert len({(w,h) for ...}) == 1
+assert solapes == 0
+```
+
+### Iconos: verificar que la forma existe
+
+draw.io trae ~10.400 formas indexadas en
+`~/.claude/plugins/marketplaces/drawio/shape-search/search-index.json`. Buscar ahí
+el `style` exacto antes de usarlo; inventar un `shape=` produce una caja vacía.
+
+**No existen** iconos de Vercel, Railway, Neon, Cloudflare, React ni FastAPI.
+Sí existen Docker, PostgreSQL, bucket de almacenamiento, CronJob de Kubernetes,
+navegador y OpenAI. Para lo que no tiene icono, pastilla con el color de marca —
+y para nodos que son código puro, **ninguna insignia**: una letra suelta no
+significa nada y ensucia.
 
 ## Reglas de legibilidad
 

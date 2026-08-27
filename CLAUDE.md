@@ -86,8 +86,9 @@ El backend implementa: `/health`, `/ready`, `/api/admin/login|me|summary`,
   puerto 8000: un `uvicorn` huérfano lo secuestra y el proxy no registra ni una
   línea. Ausencia de logs del proxy es la pista.
 - En heredocs de Python, `"\n"` se convierte en salto real. Usar `chr(92)`.
-- La exportación por CLI de draw.io se cuelga desde esta sesión: necesita el
-  renderer de Electron. Ver la skill `soma-diagrams`.
+- La exportación por CLI de draw.io **sí funciona** si hay sesión de escritorio
+  activa; se cuelga solo si no la hay. Invocar por ruta completa, no está en el
+  PATH. Ver la skill `soma-diagrams`.
 
 ## Skills del proyecto
 
