@@ -49,6 +49,7 @@ repositorio.
 * [ADR-004 Postgres con pgvector](SOMA-ADR-004-postgres-pgvector.md) - Motor único de datos y embeddings; entornos por branch.
 * [ADR-005 endurecimiento de seguridad](SOMA-ADR-005-security-hardening.md) - Sesión por cookie, rol, y plan de pruebas ofensivas (planificado, sin implementar).
 * [ADR-006 ingesta documental](SOMA-ADR-006-ingesta-documental.md) - Origen `inbox/` en bucket, disparo por cron en Render, XML DIAN antes que PDF y parsers tras un puerto único.
+* [ADR-007 frontera de la documentación](SOMA-ADR-007-frontera-de-la-documentacion.md) - Por qué el bundle OKF vive en el repositorio y por qué la doctrina transversal y la infraestructura de memoria se quedan fuera.
 
 ## Planes de trabajo
 

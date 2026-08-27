@@ -25,7 +25,7 @@ durante el merge de integración.
 flowchart TB
   subgraph ctx["Contexto persistente"]
     cm["CLAUDE.md<br/>invariantes + comandos + estado real"]
-    okf["Bundle OKF<br/>C:\proyectos_ia\docs"]
+    okf["Bundle OKF<br/>docs/ del repositorio"]
     eng["engram<br/>memoria entre sesiones"]
   end
   subgraph tools["Herramientas"]

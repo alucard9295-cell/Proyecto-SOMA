@@ -2,10 +2,9 @@
 
 **Estado:** en curso · **Rama:** `feat/ingesta-lote-historico` · **Actualizado:** 2026-08-26
 
-Este documento vive **dentro del repo** a propósito: el bundle de documentación
-OKF está en `C:\proyectos_ia\docs`, fuera de control de versiones, así que quien
-clone este repositorio no recibe ningún ADR. Mientras eso no se resuelva, lo que
-haga falta para retomar el trabajo tiene que estar acá.
+Este documento vive dentro del repo, igual que el resto del bundle OKF desde
+el [ADR-007](SOMA-ADR-007-frontera-de-la-documentacion.md). Todo lo que haga
+falta para retomar el trabajo está acá.
 
 Objetivo: convertir PDFs de facturas de proveedor en filas de `facturas` y
 `factura_items`, de forma verificable, sin que el LLM toque una sola cifra.
@@ -291,7 +290,7 @@ Dónde está cada cosa:
 | Comando de ingesta | `api/src/soma_api/jobs/ingest.py` |
 | Esquema | migración 7 en `api/src/soma_api/migrations.py` |
 
-Lecturas previas, en el bundle externo `C:\proyectos_ia\docs`:
+Lecturas previas, en el bundle OKF (`docs/`):
 
 - `SOMA-ADR-006-ingesta-documental.md` — origen, disparo y parsers
 - `SOMA-ADR-004-postgres-pgvector.md` — motor de datos y entornos por branch
