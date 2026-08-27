@@ -1,40 +1,49 @@
 # -*- coding: utf-8 -*-
-"""Diagrama 3: el viaje de una factura, desde el bucket hasta la pantalla."""
-from gen_diagrams import Diagram, BAND_X, BAND_W, BAND_GAP
+"""Ingesta de facturas: como es HOY, no como la dibujo el ADR-006.
 
-d = Diagram("SOMA · ingesta de una factura")
-BH, y = 132, 40
-ys = {}
-for key, title, color in [
-    ('ORIG', 'ORIGEN  ·  único canónico',                 '#E8590C'),
-    ('DESC', 'DESCUBRIMIENTO  ·  cron de Render',         '#6B7280'),
-    ('RAW',  'BRONZE  ·  inmutable, se reprocesa sin volver a subir', '#B45309'),
-    ('PARSE','PARSEO  ·  XML DIAN antes que PDF',         '#009688'),
-    ('VAL',  'VALIDACIÓN  ·  regla de negocio, no el LLM', '#DC2626'),
-    ('OUT',  'SILVER  ·  lo que ve el usuario',           '#336791'),
-]:
-    d.band(title, y, BH, color); ys[key] = y + 42; y += BH + BAND_GAP
+Verificado en api/src/soma_api/jobs/ingest.py: procesa una carpeta local con
+pdfplumber y se invoca a mano. No hay bucket (no existe boto3 en pyproject) ni
+servicio cron en render.yaml. Lo del ADR-006 queda punteado, como destino.
+"""
+from gen_lr import LR
 
-d.row([dict(key='inbox', label='inbox/  en R2', sub='correo y Drive solo depositan', icon='cloudflare')], ys['ORIG'])
-d.row([dict(key='cron', label='Cron de ingesta', sub='una sola corrida activa', icon='render')], ys['DESC'])
-d.row([dict(key='raw', label='bronze.documentos_raw', sub='binario + hash  ·  received', icon='pdf')], ys['RAW'])
-d.row([dict(key='xml', label='Parser XML DIAN', sub='el UBL es la factura'),
-       dict(key='pdf', label='Parser PDF',      sub='solo si no hay XML')], ys['PARSE'])
-d.row([dict(key='chk', label='¿Los totales cuadran?', sub='cualquiera de los dos parsers llega aquí')], ys['VAL'])
-d.row([dict(key='ok',  label='silver.facturas', sub='validated  ·  visible en la UI', icon='postgresql'),
-       dict(key='rev', label='needs_review',    sub='totales que no cuadran')], ys['OUT'])
+NARANJA, TEAL, ROJO, AZUL = '#E8590C', '#009688', '#DC2626', '#3A6EA5'
 
-d.edge('inbox', 'cron', 'lista el prefijo')
-d.edge('cron', 'raw', 'mismo archivo dos veces = una factura')
-d.edge('raw', 'xml', 'precedencia', ports=(0.25,1,0.5,0))
-d.edge('raw', 'pdf', 'respaldo', ports=(0.75,1,0.5,0), dashed=True)
-d.edge('xml', 'chk', 'factura estructurada', ports=(0.5,1,0.25,0))
-d.edge('pdf', 'chk', 'campos extraídos',     ports=(0.5,1,0.75,0))
-d.edge('chk', 'ok',  'sí',  ports=(0.25,1,0.5,0), color='#059669')
-d.edge('chk', 'rev', 'no',  ports=(0.75,1,0.5,0), color='#DC2626')
+d = LR("SOMA · ingesta de facturas (estado real)", [
+    ("EN TU MÁQUINA", NARANJA, [
+        dict(key='pdfs', label='Carpeta de PDFs', sub='facturas_db_pdf/', icon='folder'),
+    ]),
+    ("PROCESO  ·  local, a mano", TEAL, [
+        dict(key='job', label='ingest.py', sub='pdfplumber  ·  20 por corrida', icon='pdf'),
+    ]),
+    ("VALIDACIÓN  ·  Python, no el LLM", ROJO, [
+        dict(key='chk', label='¿Los totales cuadran?', sub='idempotente por content_hash'),
+    ]),
+    ("SALIDA", AZUL, [
+        dict(key='csv', label='CSV / JSONL',   sub='filas listas para cargar', icon='doc'),
+        dict(key='rev', label='needs_review',  sub='con el motivo escrito', accent=ROJO),
+    ]),
+    ("BASE", AZUL, [
+        dict(key='db', label='facturas', sub='una sola fila por factura', icon='db'),
+    ]),
+])
 
-d.legend([("El XML UBL es la factura; el PDF es su representación gráfica", "#009688"),
-          ("bronze es inmutable: mejorar un parser reprocesa sin resubir",  "#B45309"),
-          ("Un documento dudoso nunca entra callado a silver",              "#DC2626")],
-         BAND_X, y + 6, w=560)
+d.edge('pdfs',  'job', 'ruta como argumento')
+d.edge('job', 'chk', 'factura extraída')
+d.edge('chk', 'csv', 'sí', ports=(1, 0.5, 0, 0.3), color='#059669')
+d.edge('chk', 'rev', 'no', ports=(1, 0.5, 0, 0.7), color=ROJO)
+d.edge('csv', 'db', 'carga', ports=(1, 0.5, 0, 0.5))
+
+d.strip("LO QUE NO EXISTE TODAVÍA  ·  hoy nada de esto corre solo", [
+    dict(key='inbox', label='inbox/ en R2',      sub='origen canónico del ADR-006', icon='bucket', planned=True),
+    dict(key='cron',  label='Disparo automático', sub='ningún cron en render.yaml',   planned=True),
+    dict(key='mail',  label='Correo y Drive',     sub='adaptadores del ADR-006',      planned=True),
+], color='#9CA3AF')
+
+d.legend([
+    ("Sólido = verificado en el código de hoy", '#1F2733'),
+    ("Punteado = decidido en el ADR-006, todavía sin construir", '#9CA3AF'),
+    ("El mismo archivo dos veces no duplica: content_hash", TEAL),
+    ("Una factura que no cierra NUNCA entra callada a la base", ROJO),
+])
 d.write(r'C:\proyectos_ia\arquitectura\Proyecto-SOMA\docs\diagrams\soma-ingesta-factura.drawio')

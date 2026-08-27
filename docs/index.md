@@ -62,10 +62,18 @@ maestro editable; el `.svg` de al lado es su render, y se ve directo en GitHub.
 
 | Diagrama | Responde a |
 | --- | --- |
-| [Despliegue](diagrams/soma-despliegue.svg) · [editable](diagrams/soma-despliegue.drawio) | Dónde corre cada cosa y por dónde viaja el dato |
-| [Capas de código](diagrams/soma-capas.svg) · [editable](diagrams/soma-capas.drawio) | Cómo está organizado por dentro y qué regla lo protege |
-| [Ingesta de una factura](diagrams/soma-ingesta-factura.svg) · [editable](diagrams/soma-ingesta-factura.drawio) | El viaje de un PDF desde `inbox/` hasta la pantalla |
+| [Despliegue](diagrams/soma-despliegue.svg) · [editable](diagrams/soma-despliegue.drawio) | Por dónde entra una petición y dónde termina |
+| [Capas de código](diagrams/soma-capas.svg) · [editable](diagrams/soma-capas.drawio) | Hacia dónde puede mirar cada capa, y qué regla lo verifica |
+| [Ingesta de facturas](diagrams/soma-ingesta-factura.svg) · [editable](diagrams/soma-ingesta-factura.drawio) | El viaje de un PDF, tal como funciona hoy |
 | [Frontend antes del refactor](diagrams/soma-frontend-antes.drawio) | Registro histórico del punto de partida |
+
+Se leen de **izquierda a derecha**: el dato entra por la izquierda y sale por la
+derecha. Lo que corta a todas las etapas —seguridad, observabilidad,
+adaptadores— va en una franja transversal debajo, porque no es una etapa más.
+
+**Trazo sólido = existe hoy, verificado en el código. Punteado = decidido en un
+ADR pero todavía sin construir.** Esa distinción es deliberada: los diagramas
+anteriores dibujaban el destino como si fuera el presente.
 
 La geometría de los tres se genera por script, no a mano: las bandas y la rejilla
 hacen imposibles los solapes y los tamaños dispares que afeaban el diagrama

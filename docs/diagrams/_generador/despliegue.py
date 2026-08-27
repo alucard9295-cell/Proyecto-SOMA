@@ -1,45 +1,49 @@
 # -*- coding: utf-8 -*-
-"""Diagrama 1: dónde corre SOMA y por dónde viaja el dato.
+"""Despliegue: por donde entra una peticion y donde termina.
 
-Una sola dirección de lectura: arriba -> abajo. El cron vive en su propia banda
-para que sus dos flechas salgan de un punto y no crucen el camino del API.
+Solido = existe hoy (verificado en render.yaml y config.py).
+Punteado = decidido en un ADR pero todavia no construido.
 """
-from gen_diagrams import Diagram, BAND_X, BAND_W, BAND_GAP
+from gen_lr import LR
 
-d = Diagram("SOMA · despliegue")
-BH, y = 132, 40
-ys = {}
-for key, title, color in [
-    ('PERSONAS',  'PERSONAS',                              '#6B7280'),
-    ('BORDE',     'BORDE  ·  Vercel',                      '#111827'),
-    ('APP',       'APLICACIÓN  ·  Railway',                '#009688'),
-    ('INGESTA',   'INGESTA  ·  Render (cron, $1/mes)',     '#E8590C'),
-    ('DATOS',     'DATOS  ·  Neon + Cloudflare',           '#336791'),
-]:
-    d.band(title, y, BH, color); ys[key] = y + 42; y += BH + BAND_GAP
+GRIS, VERDE, TEAL, AZUL = '#6B7280', '#46E3B7', '#009688', '#3A6EA5'
 
-d.row([dict(key='cliente', label='Cliente / visitante', sub='sitio público de ventas', icon='browser'),
-       dict(key='duenio',  label='Dueño del producto',  sub='control room admin',      icon='user')], ys['PERSONAS'])
-d.row([dict(key='web', label='Web SOMA', sub='React 19 + Vite  ·  estático', icon='vercel', brand='vercel')], ys['BORDE'])
-d.row([dict(key='api', label='API SOMA',   sub='FastAPI + uv  ·  Python 3.12', icon='docker'),
-       dict(key='llm', label='Asesor LLM', sub='SSE  ·  no calcula cifras',    icon='openai')], ys['APP'])
-d.row([dict(key='cron', label='Cron de ingesta', sub='una sola corrida activa', icon='render')], ys['INGESTA'])
-d.row([dict(key='pg', label='Postgres + pgvector', sub='Neon  ·  entorno por branch',   icon='postgresql'),
-       dict(key='r2', label='Bucket privado',      sub='Cloudflare R2  ·  inbox/',      icon='cloudflare')], ys['DATOS'])
+d = LR("SOMA · despliegue", [
+    ("PERSONAS", GRIS, [
+        dict(key='cliente', label='Cliente / visitante', sub='sitio público de ventas', icon='browser'),
+        dict(key='duenio',  label='Dueño del producto',  sub='control room admin',      icon='user'),
+    ]),
+    ("WEB  ·  Render static  ·  $0", VERDE, [
+        dict(key='web', label='Web SOMA', sub='React 19 + Vite  ·  SPA compilada', icon='react'),
+    ]),
+    ("API  ·  Render docker  ·  $0", TEAL, [
+        dict(key='api', label='API SOMA',   sub='FastAPI + uv  ·  Python 3.12', icon='docker'),
+        dict(key='llm', label='Asesor LLM', sub='SSE  ·  lee, no calcula',      icon='openai', accent='#7C3AED'),
+    ]),
+    ("DATOS", AZUL, [
+        dict(key='sqlite', label='SQLite', sub='disco efímero  ·  se borra al desplegar', icon='db', accent='#B45309'),
+        dict(key='pg',     label='Postgres + pgvector', sub='Neon free  ·  ADR-004', icon='postgresql', planned=True),
+    ]),
+])
 
 d.edge('cliente', 'web', 'HTTPS')
 d.edge('duenio',  'web', 'cookie de sesión')
-d.edge('web', 'api', '/api/*  REST + SSE')
-d.edge('api', 'llm', '', dashed=True, ports='h', color='#8A3FFC')
-# El API baja por la izquierda del cron; entra a Postgres descentrado para no
-# chocar con la flecha del cron.
-d.edge('api',  'pg', 'SQL', ports=(0.25, 1, 0.25, 0))
-d.edge('cron', 'r2', 'lee inbox/', ports=(0.75, 1, 0.5, 0))
-d.edge('cron', 'pg', 'escribe bronze / silver', ports=(0.25, 1, 0.75, 0), color='#E8590C')
+d.edge('web', 'api', '/api/*   REST + SSE')
+d.edge('api', 'sqlite', 'hoy')
+d.edge('api', 'pg', 'destino', dashed=True)
+d.edge('api', 'llm', '', ports='v', color='#7C3AED', dashed=True)
 
-d.legend([("Ejecución gestionada — Vercel, Railway, Render", "#009688"),
-          ("Datos persistentes — Neon, Cloudflare R2",       "#336791"),
-          ("Ingesta programada",                             "#E8590C"),
-          ("Dependencia externa, solo lectura (invariante 7)", "#8A3FFC")], BAND_X, y + 6)
+# Transversal de verdad: no es una etapa del recorrido, toca todas.
+d.strip("TRANSVERSAL  ·  se aplica a toda petición, en cualquier etapa", [
+    dict(key='sec', label='Seguridad',      sub='cookie de sesión, rol, allowlist de MCP'),
+    dict(key='obs', label='Observabilidad', sub='X-Request-ID, audit_events, run_id'),
+    dict(key='lim', label='Límite de tasa', sub='rate_limit.py'),
+])
 
+d.legend([
+    ("Existe hoy — verificado en render.yaml y config.py", '#1F2733'),
+    ("Decidido en un ADR, todavía sin construir", '#9CA3AF'),
+    ("SQLite en disco efímero: la base se reinicia en cada despliegue", '#B45309'),
+    ("El LLM lee; ninguna cifra final sale de él (invariante 7)", '#7C3AED'),
+])
 d.write(r'C:\proyectos_ia\arquitectura\Proyecto-SOMA\docs\diagrams\soma-despliegue.drawio')

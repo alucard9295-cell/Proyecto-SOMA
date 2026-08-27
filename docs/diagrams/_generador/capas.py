@@ -1,36 +1,45 @@
 # -*- coding: utf-8 -*-
-"""Diagrama 2: cómo está organizado el código por dentro (hexagonal)."""
-from gen_diagrams import Diagram, BAND_X, BAND_W, BAND_GAP
+"""Capas de codigo: hacia donde puede mirar cada capa.
 
-d = Diagram("SOMA · capas de código")
-BH, y = 132, 40
-ys = {}
-for key, title, color in [
-    ('IN',   'ENTRADA  ·  interface/',                       '#6B7280'),
-    ('APP',  'CASOS DE USO  ·  application/',                '#009688'),
-    ('DOM',  'NÚCLEO  ·  domain/', '#B45309'),
-    ('INFRA','ADAPTADORES  ·  el SQL vive aquí',             '#336791'),
-]:
-    d.band(title, y, BH, color); ys[key] = y + 42; y += BH + BAND_GAP
+Los adaptadores van en la franja transversal porque no son una etapa del
+recorrido: son el borde por el que el nucleo habla con el mundo, y cualquier
+capa de arriba puede necesitarlos. Es la forma hexagonal, dibujada como tal.
+"""
+from gen_lr import LR
 
-d.row([dict(key='routes', label='routes  ·  main', sub='FastAPI, validación de entrada', icon='fastapi'),
-       dict(key='deps',   label='dependencies',   sub='sesión por cookie, rol', icon='fastapi')], ys['IN'])
-d.row([dict(key='svc', label='Servicios de caso de uso', sub='orquestan, no calculan')], ys['APP'])
-d.row([dict(key='cost',  label='costing', sub='AIU, IVA  ·  Decimal, nunca float'),
-       dict(key='sched', label='scheduling', sub='duración y cronograma de obra')], ys['DOM'])
-d.row([dict(key='repo', label='repositories.py', sub='todo el SQL  ·  puertos',       icon='postgresql'),
-       dict(key='migr', label='migrations.py',   sub='única vía de cambio de esquema', icon='postgresql')], ys['INFRA'])
+GRIS, TEAL, NARANJA, AZUL = '#6B7280', '#009688', '#B45309', '#3A6EA5'
 
-d.edge('routes', 'svc', 'petición validada', ports=(0.5,1,0.25,0))
-d.edge('deps',   'svc', 'identidad',         ports=(0.5,1,0.75,0))
-d.edge('svc', 'cost',  'calcula',  ports=(0.25,1,0.5,0))
-d.edge('svc', 'sched', 'planifica', ports=(0.75,1,0.5,0))
-d.edge('svc', 'repo', 'puerto: lee y escribe', ports=(0,0.5,0,0.5), color='#336791',
-       waypoints=[(340, 279), (340, 595)])   # rodea el nucleo por la izquierda
-d.edge('repo', 'migr', 'esquema declarado', ports='h', color='#336791')
+d = LR("SOMA · capas de código", [
+    ("ENTRADA  ·  interface/", GRIS, [
+        dict(key='routes', label='routes  ·  main', sub='FastAPI, valida la entrada', icon='fastapi'),
+        dict(key='deps',   label='dependencies',   sub='resuelve quién pide',        icon='fastapi'),
+    ]),
+    ("CASOS DE USO  ·  application/", TEAL, [
+        dict(key='svc', label='Servicios de caso de uso', sub='orquestan; no calculan'),
+    ]),
+    ("NÚCLEO  ·  domain/", NARANJA, [
+        dict(key='cost',  label='costing',    sub='AIU, IVA  ·  Decimal, nunca float'),
+        dict(key='sched', label='scheduling', sub='duración y cronograma de obra'),
+    ]),
+])
 
-d.legend([("Regla verificada por AST: domain/ no importa FastAPI ni sqlite3", "#B45309"),
-          ("test_architecture_layering.py falla si alguien la rompe",         "#B45309"),
-          ("Un cálculo tiene UNA implementación: la del backend",             "#009688")],
-         BAND_X, y + 6, w=560)
+d.edge('routes', 'svc', 'petición validada', ports=(1, 0.5, 0, 0.35))
+d.edge('deps',   'svc', 'identidad',         ports=(1, 0.5, 0, 0.65))
+d.edge('svc', 'cost',  'calcula',   ports=(1, 0.35, 0, 0.5))
+d.edge('svc', 'sched', 'planifica', ports=(1, 0.65, 0, 0.5))
+
+d.strip("ADAPTADORES  ·  el borde con el mundo — aquí vive TODO el SQL", [
+    dict(key='repo', label='repositories.py', sub='única puerta a la base', icon='db'),
+    dict(key='migr', label='migrations.py',   sub='única vía de cambio de esquema', icon='db'),
+    dict(key='dbm',  label='database.py',     sub='conexión y unidad de trabajo',   icon='db'),
+], color='#3A6EA5')
+
+d.edge('svc', 'repo', 'puerto: lee y escribe', ports=(0.5, 1, 0.5, 0), color=AZUL)
+
+d.legend([
+    ("La flecha nunca apunta hacia la izquierda: domain/ no conoce a nadie", NARANJA),
+    ("Verificado por AST en test_architecture_layering.py, no por disciplina", NARANJA),
+    ("Un cálculo tiene UNA implementación, y es la del backend", TEAL),
+    ("Los adaptadores no son una etapa: son el borde, por eso van aparte", AZUL),
+])
 d.write(r'C:\proyectos_ia\arquitectura\Proyecto-SOMA\docs\diagrams\soma-capas.drawio')

@@ -1,9 +1,9 @@
 # Generador de los diagramas
 
-Las coordenadas **no se escriben a mano**. Cada diagrama declara bandas
-horizontales y filas de tarjetas; el generador centra cada fila y deriva el
-espaciado del número de tarjetas, así que solapes y tamaños dispares son
-imposibles por construcción — que era exactamente el defecto de la lámina
+Las coordenadas **no se escriben a mano**. Cada diagrama declara columnas de
+izquierda a derecha —una por etapa— y el generador (`gen_lr.py`) apila y centra
+las tarjetas dentro de cada una, derivando el espaciado del número de tarjetas.
+Solapes y tamaños dispares son imposibles por construcción — que era exactamente el defecto de la lámina
 anterior (12 tamaños distintos en 17 nodos y 6 pares solapados).
 
 ```powershell
@@ -28,3 +28,16 @@ URI, que es lo que consume el generador. Se incrustan en el XML a propósito: un
 cambia.
 
 No poner logo a un nodo que es código puro: miente sobre la tecnología.
+
+## Dos convenciones que no son decorativas
+
+**Izquierda a derecha.** El dato entra por la izquierda y sale por la derecha.
+Una sola dirección de lectura; nunca mezclar con vertical.
+
+**La franja transversal no es una etapa.** Seguridad, observabilidad y
+adaptadores no ocurren *en un punto* del recorrido: cortan todo el ancho. Por
+eso van en una banda que abarca todas las columnas, no como una columna más.
+
+**Sólido = existe. Punteado = decidido, sin construir.** Un diagrama que pinta
+el destino como presente miente, y se descubre tarde. Antes de marcar algo como
+sólido, verificarlo en el código, no en un ADR.
