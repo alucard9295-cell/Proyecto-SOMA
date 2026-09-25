@@ -5,6 +5,7 @@
 import { Hono, type Context } from "hono";
 import { z } from "zod";
 import type { AppEnv } from "../env";
+import { HttpError } from "../errors";
 import { requireAccess } from "../middleware/access";
 import { repos } from "../repositories";
 import * as apus from "../services/apus";
@@ -135,6 +136,7 @@ export const admin = new Hono<AppEnv>()
   .get("/documentos/revision", async (c) => c.json(await documents.listInReview(repos(c.env.DB))))
   .get("/documentos/revision/:id", validate("param", id), async (c) => c.json(await documents.getJob(repos(c.env.DB), c.req.valid("param").id)))
   .post("/documentos", validate("form", uploadInput), async (c) => {
+    if (!c.env.FILES) throw new HttpError(503, "La carga de facturas todavia no esta habilitada.");
     const { archivo, extraccion } = c.req.valid("form");
     const r = repos(c.env.DB);
     const result = await documents.subir(r, c.env.FILES, { nombre: archivo.name, bytes: await archivo.arrayBuffer() }, extraccion, ctx(c));

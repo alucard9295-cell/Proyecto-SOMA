@@ -18,12 +18,13 @@
     {
       "binding": "DB",
       "database_name": "soma",
-      // Se completa tras `wrangler d1 create soma`. En local no se usa.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "dee822f7-b0e8-4a78-bf4c-56e957a29c08",
       "migrations_dir": "migrations"
     }
   ],
-  "r2_buckets": [{ "binding": "FILES", "bucket_name": "soma-documentos" }],
+  // R2 aun no esta habilitado en la cuenta (se activa en el dashboard). Sin
+  // FILES, POST /api/admin/documentos responde 503. Al activarlo: descomentar.
+  // "r2_buckets": [{ "binding": "FILES", "bucket_name": "soma-documentos" }],
   // Workers AI siempre corre en la cuenta, tambien en local (gasta neuronas).
   "ai": { "binding": "AI", "remote": true },
   // Asesor publico: 8 preguntas por minuto por IP. Contador aproximado y por

@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database;
-  FILES: R2Bucket;
+  /** Opcional mientras R2 no este habilitado en la cuenta: sin el, no se suben facturas. */
+  FILES?: R2Bucket;
   AI: Ai;
   /** Limite por IP del asesor publico (binding de rate limiting). */
   ASESOR_LIMITE: RateLimit;

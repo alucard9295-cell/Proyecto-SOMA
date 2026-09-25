@@ -44,7 +44,7 @@ describe("POST /api/admin/documentos", () => {
 
     const doc = await env.DB.prepare("SELECT storage_key, content_hash, bytes FROM documentos_raw WHERE documento_id = ?").bind(r.body.documento_id).first<{ storage_key: string; content_hash: string; bytes: number }>();
     expect(doc!.storage_key).toBe(`facturas/${doc!.content_hash}.pdf`);
-    const objeto = await env.FILES.get(doc!.storage_key);
+    const objeto = await env.FILES!.get(doc!.storage_key);
     expect(objeto?.httpMetadata?.contentType).toBe("application/pdf");
     expect((await objeto!.text()).startsWith("%PDF-")).toBe(true);
 

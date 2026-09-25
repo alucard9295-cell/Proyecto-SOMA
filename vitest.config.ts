@@ -20,7 +20,8 @@ export default defineConfig(async () => {
               wrangler: { configPath: "./wrangler.jsonc" },
               // Los tests nunca tocan la cuenta: sin IA remota ni sesion de wrangler.
               remoteBindings: false,
-              miniflare: { bindings: { ENVIRONMENT: "test", TEST_MIGRATIONS: migrations } },
+              // R2 propio: en wrangler.jsonc queda comentado hasta habilitarlo en la cuenta.
+              miniflare: { r2Buckets: ["FILES"], bindings: { ENVIRONMENT: "test", TEST_MIGRATIONS: migrations } },
             }),
           ],
           test: { name: "workers", include: ["tests/api/**/*.test.ts"], setupFiles: ["./tests/setup.ts"] },
