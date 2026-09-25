@@ -1,0 +1,8 @@
+{
+  // Tests de arquitectura y scripts de tools/: corren en Node, no en workerd.
+  // route-contract importa worker/app para leer sus rutas: de ahi workers-types.
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node", "@cloudflare/workers-types"] },
+  "include": ["tests/architecture", "tools/**/*.ts"],
+  "exclude": []
+}

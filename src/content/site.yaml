@@ -10,27 +10,19 @@ marca:
   nombre: SOMA
   tagline: Arquitectura que encuentra potencial
 
-login:
-  contexto: ACCESO ADMINISTRATIVO / LOCAL
-  eyebrow: SOMA / CONTROL ROOM
-  titulo_linea1: Del insumo
-  titulo_linea2: al
-  titulo_enfasis: criterio.
-  descripcion: >-
-    Un precio unitario bien armado sostiene una decisión de obra. Entra para
-    ordenar el catálogo, construir tus APUs y proyectar el cronograma.
-  secuencia:
-    - { paso: "01", nombre: Normalizar }
-    - { paso: "02", nombre: Costear }
-    - { paso: "03", nombre: Proyectar }
-  area: ÁREA RESTRINGIDA
-  encabezado: Iniciar sesión
-  ayuda: El catálogo de insumos, los APUs y el simulador están protegidos.
-  campo_usuario: Usuario
-  campo_password: Contraseña
-  boton: Entrar al control room ↗
-  nota: La contraseña se valida contra el hash almacenado en la base.
-  validando: Validando acceso...
+# El inicio de sesion lo hace Cloudflare Access antes de llegar a la app
+# (ADR-010): aqui solo quedan los estados que la app puede encontrar.
+acceso:
+  cargando: Verificando tu sesión...
+  vencida_titulo: Tu sesión terminó
+  vencida_texto: Vuelve a entrar para seguir trabajando. No se perdió nada guardado.
+  vencida_boton: Entrar de nuevo ↗
+  sin_configurar_titulo: El acceso de administrador no está configurado
+  sin_configurar_texto: >-
+    Falta conectar Cloudflare Access a esta instalación. Hasta entonces el
+    control room permanece cerrado.
+  modo_local: MODO LOCAL
+  error_titulo: No se pudo verificar la sesión
 
 nav:
   contexto_admin: SOMA / CONTROL ROOM
@@ -38,12 +30,15 @@ nav:
   ver_ventas: Ver ventas ↗
   acceso_admin: Acceso admin ↗
   cerrar_sesion: Cerrar sesión
+  contraer: Contraer menú
+  expandir: Expandir menú
   secciones:
-    - { id: dashboard, etiqueta: Resumen }
-    - { id: supplies, etiqueta: Insumos }
-    - { id: apus, etiqueta: APUs }
-    - { id: simulator, etiqueta: Simulador }
-    - { id: guide, etiqueta: Orientación }
+    - { ruta: /admin, numero: "01", etiqueta: Resumen }
+    - { ruta: /admin/insumos, numero: "02", etiqueta: Insumos }
+    - { ruta: /admin/apus, numero: "03", etiqueta: APUs }
+    - { ruta: /admin/simulador, numero: "04", etiqueta: Simulador }
+    - { ruta: /admin/revision, numero: "05", etiqueta: Revisión }
+    - { ruta: /admin/orientacion, numero: "06", etiqueta: Orientación }
 
 resumen:
   eyebrow: SOMA / LECTURA OPERATIVA
@@ -52,28 +47,31 @@ resumen:
   titulo_enfasis: los patrones.
   estado_activo: CONTROL ROOM ACTIVO
   estado_texto: >-
-    Los insumos, los APUs y el simulador ya operan sobre datos reales. La
-    lectura de facturas llegará después.
-  ayuda_titulo: Estado de este resumen
+    Insumos, APUs, simulador y facturas validadas trabajan sobre la misma base.
+    Una factura entra solo si sus cifras cuadran.
+  ayuda_titulo: De dónde salen estas cifras
   ayuda_texto: >-
-    Los indicadores de documentos aún no están conectados a la base: la ingesta
-    de facturas no está implementada. Los módulos de Insumos, APUs y Simulador
-    sí trabajan con datos reales.
+    Solo cuentan las facturas cuya suma de renglones coincide con el subtotal y
+    el total. Las que no cuadran esperan en Revisión y no afectan el gasto.
   kpis:
-    - { etiqueta: Facturas procesadas, detalle: Ingesta pendiente de implementar }
-    - { etiqueta: Gasto registrado, detalle: Se poblará con la lectura de facturas }
-    - { etiqueta: Proveedores, detalle: Se poblará con la lectura de facturas }
-    - { etiqueta: Alertas de calidad, detalle: Requieren revisión }
+    - { etiqueta: Facturas validadas, detalle: Suma verificada renglón a renglón }
+    - { etiqueta: Gasto registrado, detalle: Total de facturas validadas }
+    - { etiqueta: Proveedores, detalle: Emisores distintos }
+    - { etiqueta: En revisión, detalle: No cuadraron; esperan confirmación }
   acciones_eyebrow: SIGUIENTE MOVIMIENTO
   acciones_titulo: Lo que ya puedes trabajar hoy.
   acciones_texto: >-
     Normaliza el catálogo de insumos, arma los análisis de precio unitario y
     proyecta un cronograma con costos reales.
+  acciones:
+    - { ruta: /admin/apus, etiqueta: Construir un APU ↗, principal: true }
+    - { ruta: /admin/insumos, etiqueta: Ordenar insumos }
+    - { ruta: /admin/simulador, etiqueta: Simular proyecto }
 
 # Esta sección describía Facturas, Chroma, Inteligencia y DeepSeek: ninguno
 # existe en el producto actual. Reescrita para contar lo que sí hace.
 orientacion:
-  eyebrow: 03 / ORIENTACIÓN
+  eyebrow: 06 / ORIENTACIÓN
   titulo_linea1: Una guía para
   titulo_linea2: costear
   titulo_enfasis: mejor.
@@ -185,6 +183,30 @@ asesor:
   placeholder: Escribe tu pregunta...
   enviar: Enviar ↗
   error_prefijo: "No pude completar la asesoría:"
+  # Cuando se agota el cupo diario del asesor (lo escribe el Worker).
+  agotado: >-
+    Por hoy ya respondí todas las consultas que puedo. Escríbenos por WhatsApp
+    y te atendemos directamente.
+  # Numero con indicativo, solo digitos (p. ej. 573001234567). Vacio = sin enlace.
+  whatsapp: ""
+
+# Textos comunes de la ventana de chat (asesor y copiloto).
+asistente:
+  aviso: El asistente puede equivocarse. Verifica las cifras en la herramienta.
+  abrir: Abrir asistente
+  cerrar: Cerrar asistente
+  copiar: Copiar
+  copiado: Copiado
+  simulador_lleno: Listo, llené el simulador con esos datos. Pulsa «Ver escenario» para ver el resultado.
+  seccion_abierta: Listo, abrí la sección
+
+# Copiloto del control room: globo flotante en todas las secciones.
+copiloto:
+  titulo: Copiloto SOMA
+  bienvenida: >-
+    Puedo buscar insumos y precios, resumir cómo va el negocio o llevarte a la
+    sección que necesites.
+  placeholder: Pregunta o pide una sección...
 
 revision:
   eyebrow: FACTURAS EN REVISIÓN
@@ -208,6 +230,32 @@ revision:
   detalle_iva: IVA
   detalle_total: Total
   error_carga: No se pudieron cargar las facturas en revisión.
+  carga_eyebrow: CARGAR FACTURAS
+  carga_titulo: Sube los PDF de tus proveedores
+  carga_texto: >-
+    Se leen aquí mismo, en tu navegador. Si las cifras cuadran entran directo;
+    si no, quedan abajo esperando tu revisión. Subir dos veces el mismo archivo
+    no lo duplica.
+  carga_boton: Elegir PDF…
+  carga_leyendo: Leyendo
+  carga_validada: Validada
+  carga_revision: En revisión
+  carga_duplicada: Ya estaba cargada
+  carga_error: Error
+  aprobar_titulo: Corrige lo que se leyó mal y confirma
+  aprobar_texto: >-
+    La factura solo entra si la suma de renglones da el subtotal y subtotal más
+    IVA da el total. Los importes se escriben sin separador de miles, con punto
+    decimal.
+  aprobar_boton: Confirmar factura
+  agregar_renglon: + Renglón
+  quitar_renglon: Quitar renglón
+  descartar_boton: Descartar documento
+  descartar_motivo: Motivo para descartarlo
+  campo_proveedor: Proveedor
+  campo_nit: NIT emisor
+  campo_fecha: Fecha
+  campo_cufe: CUFE
 
 comun:
   sin_datos: Sin datos

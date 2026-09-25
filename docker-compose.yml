@@ -1,66 +1,25 @@
+# Herramientas de agente para desarrollo. El producto no corre en Docker: el
+# Worker se desarrolla con `npm run dev` y se despliega en Cloudflare.
+#
+#   docker compose up -d --build dsh
+#   docker compose logs dsh        # la URL con ?token=... para abrir la UI
 services:
-  # Postgres local con pgvector ya compilado. Existe para desarrollar y probar
-  # la migracion de ADR-004: mientras el API siga en SQLite, este servicio no
-  # tiene consumidores dentro de compose y solo lo usa DBeaver desde el host.
-  # No instalar Postgres en Windows: la version y las extensiones difieren de
-  # produccion, que es justo lo que esta imagen evita.
-  db:
-    image: pgvector/pgvector:pg17
+  dsh:
+    build: ./tools/dsh
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-soma}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-solo-para-esta-maquina}
-      POSTGRES_DB: ${POSTGRES_DB:-soma}
-    # Publicado solo en loopback: accesible desde DBeaver, no desde la red.
+      # Se lee del .env de la raiz (ignorado por git). Ver .env.example.
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:?Falta DEEPSEEK_API_KEY en .env}
+    # Solo loopback: la UI da ejecucion de comandos a quien tenga el token.
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:3080:3081"
     volumes:
-      - soma_pg:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-soma} -d ${POSTGRES_DB:-soma}"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-
-  api:
-    build:
-      context: ./api
-    environment:
-      # Valores de desarrollo. En produccion vienen del entorno del proveedor.
-      DATABASE_PATH: /app/data/soma.sqlite3
-      JWT_SECRET: ${JWT_SECRET:-local-compose-secret-change-me-please-32b}
-      ENVIRONMENT: ${ENVIRONMENT:-development}
-      # El navegador habla con el proxy, no con el API: mismo origen, sin CORS.
-      ALLOWED_HOSTS: api,localhost,127.0.0.1,testserver
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-    env_file:
-      - path: ./api/.env
-        required: false
-    volumes:
-      - soma_data:/app/data
-    # Sin `ports`: solo alcanzable desde la red interna, a traves del proxy.
-    expose:
-      - "8000"
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/health')"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-
-  proxy:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-    depends_on:
-      api:
-        condition: service_healthy
-    ports:
-      - "8000:80"
+      - .:/workspace
+      # node_modules propio del contenedor: un `npm install` del agente no debe
+      # pisar los binarios de Windows del host (workerd, esbuild).
+      - dsh_node_modules:/workspace/node_modules
+      - dsh_home:/home/node/.dsh
     restart: unless-stopped
 
 volumes:
-  soma_data:
-  soma_pg:
+  dsh_node_modules:
+  dsh_home:

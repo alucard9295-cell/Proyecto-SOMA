@@ -435,3 +435,57 @@ h3 { margin: 0 0 8px; line-height: 1.1; }
 .review-items { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .review-items th { text-align: left; font-weight: 600; padding: 0.35rem 0.5rem; opacity: 0.75; }
 .review-items td { padding: 0.35rem 0.5rem; border-top: 1px solid rgba(128, 128, 128, 0.15); }
+
+/* Control room: barra lateral contraible con las herramientas. En movil pasa a
+   una fila horizontal desplazable; el estado contraido solo aplica en escritorio. */
+.admin-workspace { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 36px; align-items: start; width: min(1440px, calc(100% - 48px)); transition: grid-template-columns .2s; }
+.admin-workspace.menu-collapsed { grid-template-columns: 64px minmax(0, 1fr); }
+.admin-sidebar { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 10px; padding: 10px; border: 1px solid #dedbd1; border-radius: 22px; background: rgba(255,254,250,.7); }
+.admin-sidebar ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.admin-sidebar a { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 12px; border-radius: 14px; color: #77756b; font-size: 13px; white-space: nowrap; overflow: hidden; }
+.admin-sidebar a b { flex: 0 0 20px; font: 10px ui-monospace, monospace; letter-spacing: .08em; }
+.admin-sidebar a:hover, .admin-sidebar a.active { color: #fffefa; background: #1d1d1a; }
+.admin-sidebar.is-collapsed a { justify-content: center; padding: 0; }
+.admin-sidebar.is-collapsed a span { display: none; }
+.sidebar-toggle { align-self: flex-end; width: 32px; height: 32px; border: 1px solid #dedbd1; border-radius: 999px; color: #1d1d1a; background: transparent; cursor: pointer; font-size: 16px; line-height: 1; }
+.admin-sidebar.is-collapsed .sidebar-toggle { align-self: center; }
+.session-chip { font: 10px ui-monospace, monospace; letter-spacing: .1em; color: #77756b; }
+.access-state { display: grid; justify-items: start; gap: 18px; width: min(560px, calc(100% - 40px)); margin: 18vh auto 0; }
+.access-state h1 { margin: 0; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.05; }
+.access-state p { margin: 0; color: #77756b; }
+@media (max-width: 820px) {
+  .admin-workspace, .admin-workspace.menu-collapsed { grid-template-columns: minmax(0, 1fr); gap: 20px; width: calc(100% - 28px); }
+  .admin-sidebar { position: static; flex-direction: row; overflow-x: auto; border-radius: 999px; padding: 5px; }
+  .admin-sidebar ul { display: flex; }
+  .admin-sidebar.is-collapsed a { padding: 0 12px; }
+  .admin-sidebar.is-collapsed a span { display: inline; }
+  .sidebar-toggle { display: none; }
+  .session-chip { display: none; }
+  .supply-toolbar { flex-direction: column; align-items: stretch; }
+}
+
+/* Carga de facturas y correccion en revision. */
+.upload-panel { display: grid; justify-items: start; gap: 12px; margin-bottom: 40px; }
+.upload-panel h3, .upload-panel p { margin: 0; }
+.upload-panel p { color: #77756b; max-width: 62ch; }
+.upload-results { display: grid; gap: 6px; width: 100%; margin: 6px 0 0; padding: 0; list-style: none; font-size: .88rem; }
+.upload-results li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 8px 12px; border-left: 3px solid #dedbd1; border-radius: 6px; background: rgba(255,254,250,.7); }
+.upload-results li span { font-family: ui-monospace, monospace; font-size: .8rem; word-break: break-all; }
+.upload-results li small { grid-column: 1 / -1; color: #77756b; }
+.upload-results li.is-validated { border-left-color: #6b7a3a; }
+.upload-results li.is-needs_review { border-left-color: #c8643f; }
+.upload-results li.is-error { border-left-color: #b3261e; }
+.review-correct { display: grid; gap: 12px; }
+.review-correct p { margin: 0; color: #77756b; max-width: 70ch; font-size: .88rem; }
+.review-head-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.review-head-grid label { display: grid; gap: 4px; font-size: .75rem; letter-spacing: .04em; text-transform: uppercase; color: #77756b; }
+.review-correct input { width: 100%; min-height: 36px; padding: 0 10px; border: 1px solid #dedbd1; border-radius: 8px; background: #fffefa; color: #1d1d1a; font: inherit; font-size: .88rem; text-transform: none; letter-spacing: normal; }
+.review-correct .review-items td { padding: 4px; }
+.review-correct .review-items td:first-child { min-width: 220px; }
+.review-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.review-actions input { flex: 1 1 220px; width: auto; }
+@media (max-width: 820px) { .review-table, .review-correct .review-items { display: block; overflow-x: auto; } }
+.asistente-lanzador { position: fixed; right: 24px; bottom: 24px; z-index: 40; box-shadow: 0 6px 20px rgba(29, 29, 26, .18); }
+/* CopilotKit dibuja siempre el boton de adjuntos, deshabilitado si no hay menu: no se usa. */
+[data-testid="copilot-add-menu-button"]:disabled { display: none; }
+.asistente-nota { margin: 4px 0; color: #5f5a52; font-size: 14px; }

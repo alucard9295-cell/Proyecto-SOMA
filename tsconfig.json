@@ -1,0 +1,20 @@
+{
+  // Codigo que corre en workerd: Worker, dominio y tests de API. El frontend es
+  // JSX y lo compila Vite. Lo que corre en Node (tests de arquitectura, scripts
+  // de tools/) va en tsconfig.node.json: mezclar tipos de Node y de Workers
+  // haria pasar por validas APIs que el Worker no tiene.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers/types"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": false
+  },
+  "include": ["worker", "domain", "tests"],
+  "exclude": ["tests/architecture"]
+}

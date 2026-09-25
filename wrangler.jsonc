@@ -1,0 +1,45 @@
+// Un solo Worker sirve la web (dist/) y el API (/api/*). Mismo origen: sin
+// CORS ni VITE_API_BASE. Ver docs/SOMA-ADR-009-todo-cloudflare.md.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "soma",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    // SPA: cualquier ruta que no sea un archivo devuelve index.html.
+    "not_found_handling": "single-page-application",
+    // Solo el API pasa por el Worker; los estaticos no gastan invocaciones.
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "soma",
+      // Se completa tras `wrangler d1 create soma`. En local no se usa.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "soma-documentos" }],
+  // Workers AI siempre corre en la cuenta, tambien en local (gasta neuronas).
+  "ai": { "binding": "AI", "remote": true },
+  // Asesor publico: 8 preguntas por minuto por IP. Contador aproximado y por
+  // ubicacion de Cloudflare: frena abusos, no es una cuota exacta.
+  "ratelimits": [{ "name": "ASESOR_LIMITE", "namespace_id": "1001", "simple": { "limit": 8, "period": 60 } }],
+  "vars": {
+    "ENVIRONMENT": "production",
+    // Cloudflare Access: equipo y audiencia de la aplicacion que protege
+    // /admin y /api/admin/*. Vacios = el API de admin responde 503 (falla
+    // cerrado). En local, .dev.vars pone ENVIRONMENT=development.
+    // No son secretos: van aqui con su valor real. `wrangler deploy` pisa con
+    // lo de este archivo cualquier valor puesto a mano en el dashboard.
+    // ADMIN_EMAILS (quien es admin) es secreto: `wrangler secret put ADMIN_EMAILS`.
+    // Sin el, el admin tambien responde 503.
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": ""
+  },
+  "observability": { "enabled": true }
+}

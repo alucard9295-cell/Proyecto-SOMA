@@ -24,3 +24,12 @@ api/**/__pycache__/
 
 # Graphify knowledge graph (generated tool output, not app code)
 graphify-out/
+
+# Cloudflare local state and dev secrets
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# Scratch and real invoice data (never commit: contains supplier data)
+.tmp/
+tools/baseline/*.json
