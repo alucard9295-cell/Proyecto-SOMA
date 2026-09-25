@@ -1,175 +1,118 @@
 # SOMA
 
-Plataforma de arquitectura: sitio público de ventas y control room administrativo
-para lectura de facturas, costos unitarios (APU) y simulación de proyectos de obra.
+Plataforma de arquitectura con dos caras: un sitio público de ventas, con
+simulador y asesor, y un panel administrativo para leer facturas, llevar costos
+unitarios (APU) y simular proyectos de obra.
 
-Monorepo con dos unidades de despliegue. La separación que importa es de *capas
-de código*, no de repositorios (ver `SOMA-ADR-003`).
+Todo corre en **un Worker de Cloudflare, en el plan gratis**
+([ADR-009](docs/SOMA-ADR-009-cloudflare.md)):
 
-| Unidad | Ruta | Stack |
+| Pieza | Ruta | Stack |
 | --- | --- | --- |
-| Web | raíz (`src/`) | React 19 + Vite |
-| API | `api/` | FastAPI + uv, Python 3.12 |
+| UI | `src/` | React 19 + Vite, servida como assets del Worker |
+| API | `worker/` | Hono en TypeScript: `routes → services → repositories` |
+| Dominio | `domain/` | Reglas puras, compartidas por la UI y el Worker |
+| Datos | `migrations/` | D1 (SQLite), dinero en centavos |
+| IA | — | Workers AI, con CopilotKit y un endpoint AG-UI propio |
 
-## Estado real
+Producción: <https://soma.mireya-compromisos.workers.dev>.
 
-Este apartado describe lo que **funciona hoy**, no lo planeado. Una pantalla que
-llame a una ruta inexistente se oculta en vez de fallarle al usuario, y un test
-de contrato (`test_frontend_route_contract.py`) impide que eso se rompa.
+Es un monorepo a propósito: la separación que importa es de capas de código, no
+de repositorios ([ADR-003](docs/SOMA-ADR-003-layering-and-boundaries.md)).
 
-**Implementado:**
+## Qué funciona hoy
 
-- Sitio público de ventas con asesor arquitectónico por SSE (`/api/agui/architect`).
-  Sin clave de proveedor configurada responde con un fallback determinista, así
-  que el flujo se puede probar sin facturar llamadas de IA.
-- Control room: autenticación con JWT propio, resumen operativo, catálogo de
-  insumos normalizado, constructor de APU y simulador de proyectos que programa
-  partidas por rendimiento/día.
-- Ingesta de facturas por línea de comandos: de un PDF de proveedor a filas de
-  `facturas` y `factura_items`, con validación aritmética. Ver más abajo.
-- Migraciones SQLite versionadas, con la capa de repositorios como único camino
-  a la base.
+- **Sitio público**: portada con contacto y mapa, simulador de proyecto y un
+  asesor que calcula el escenario con el dominio y lo comenta. El asesor tiene
+  un límite por IP y un tope diario.
+- **Panel `/admin`**, detrás de Cloudflare Access y de la lista
+  `ADMIN_EMAILS`:
+  - resumen;
+  - catálogo de insumos;
+  - constructor de APU;
+  - proyectos con partidas programadas por rendimiento diario;
+  - copiloto;
+  - consumo del plan gratis;
+  - revisión de facturas.
+- **Facturas**: el PDF se lee en el navegador con pdf.js y `domain/extraction`
+  interpreta las palabras. Después, el Worker revalida con las mismas reglas.
+  Una factura que no cierra queda en revisión, y se aprueba o descarta desde el
+  panel, con auditoría.
 
-**No implementado** (no exponer en la UI): `/api/pipeline/process`,
-`/api/rag/index`, `/api/rag/query`, `/api/chat`, `/api/report/excel`.
-
-No hay RAG ni base vectorial en funcionamiento. Cuando los haya, será Postgres
-con `pgvector`, no un servicio aparte (`SOMA-ADR-004`).
+`tests/architecture/route-contract.test.ts` impide que la UI llame a una ruta
+que el Worker no tiene.
 
 ## Desarrollo local
 
 ```powershell
-# Web
 npm install
-npm run dev                   # 127.0.0.1:5173
-
-# API
-uv sync --directory api
-uv run --directory api pytest                    # deben pasar todos
-uv run --directory api uvicorn soma_api.main:app --app-dir src --reload --port 8000
+npm run db:migrate:local     # D1 local; repetir tras cada migración nueva
+npm run dev                  # vite con el runtime de Workers
+npm test                     # vitest: dominio, API y arquitectura (127 tests)
+npm run typecheck
+npm run build
 ```
 
-La web espera el API en `http://127.0.0.1:8000`. Para apuntar a otra dirección,
-crear un `.env` en la raíz con `VITE_API_BASE=https://api.ejemplo.com`.
+El asesor y el copiloto usan Workers AI, que solo responde con
+`npx wrangler dev` (el binding `AI` es remoto). Cómo levantar cada servidor y
+sus trampas en Windows: `.claude/skills/soma-verificar`.
 
-Crear la cuenta de administración una vez:
+Los secretos locales van en `.dev.vars` (ignorado por git):
 
-```powershell
-uv run --directory api python -m soma_api.bootstrap_admin --username admon --password 1234
-```
-
-Solo se guarda el hash. Esa contraseña de desarrollo no se reutiliza en ningún
-entorno compartido.
-
-### Stack completo con Docker
-
-```powershell
-docker compose up --build     # web + API tras Caddy en 127.0.0.1:8000
-docker compose up -d db       # solo Postgres 17 con pgvector, en 127.0.0.1:5432
-```
-
-El servicio `db` existe para desarrollar la migración de `SOMA-ADR-004` contra un
-Postgres real y para inspeccionar datos con DBeaver. Está desacoplado: el API
-sigue usando SQLite y nada dentro de compose lo consume todavía. **No instalar
-Postgres en Windows**: la versión y las extensiones diferirían de producción, que
-es justo lo que esta imagen evita.
-
-### Agente y MCP
-
-```text
-AGENT_API_KEY=...
-AGENT_BASE_URL=https://opencode.ai/zen/go/v1
-AGENT_MODEL=deepseek-v4-pro
-```
-
-Van únicamente en `api/.env`. La web nunca recibe `AGENT_API_KEY`. `MCP_ENABLED`
-es `false` por defecto; habilitarlo exige además una lista explícita en
-`MCP_ALLOWED_TOOLS`, y las herramientas que no estén listadas o que puedan
-escribir se ignoran.
-
-## Ingesta de facturas
-
-```powershell
-uv run --directory api python -m soma_api.jobs.ingest <carpeta> --recursivo
-```
-
-El mismo comando corre a mano o desde un cron de la plataforma. Es idempotente
-por `content_hash`: volver a pasar la misma carpeta no duplica una sola factura.
-
-Cómo funciona, y por qué así:
-
-- **Sin OCR.** Las facturas de proveedor traen capa de texto: los dígitos exactos
-  ya están en el archivo. Rasterizar para que un motor los adivine degrada un
-  dato correcto, y un `8` leído como `3` corrompe el APU en silencio.
-- **Extracción posicional.** Las palabras se agrupan por coordenada Y y se
-  reparten según la X de los títulos de columna. El orden de lectura del PDF no
-  coincide con el visual, y `extract_tables()` no sirve porque estas facturas
-  alinean columnas sin dibujar líneas.
-- **Un solo lector de dinero.** Los proveedores escriben `$150,000.00`,
-  `73.361,34` y `330.000`: el punto es decimal para uno y separador de miles para
-  otro. La regla que resuelve los tres es que el último separador es decimal solo
-  si le siguen exactamente dos dígitos.
-- **Dos validaciones, y hacen falta las dos.** Que la suma de los ítems dé el
-  subtotal, y que subtotal más IVA dé el total. La segunda sola no alcanza: los
-  importes del pie se leen aparte de la tabla, así que los renglones pueden estar
-  ilegibles y la factura igual "cuadrar".
-- **Una factura que no cierra no entra.** Queda como job en `needs_review` con el
-  motivo escrito. `silver` es la fuente de verdad numérica y no admite cifras sin
-  verificar.
-
-Sobre 60 documentos reales de seis meses, 15 quedan registradas y 45 en revisión:
-20 porque los ítems no se leen bien y 14 porque el emisor no tiene perfil. Añadir
-un proveedor es añadir un `PerfilEmisor` en `invoice_parsing.py`; no toca el
-comando, ni el repositorio, ni las rutas.
+- `ADMIN_EMAILS`
+- `CF_ANALYTICS_TOKEN`
 
 ## Despliegue
 
-`render.yaml` en la raíz despliega ambas unidades en Render, las dos en plan
-gratuito: `soma-web` como sitio estático y `soma-api` como contenedor.
+```powershell
+npm run deploy               # typecheck + test + build + wrangler deploy
+npm run db:migrate:remote    # antes, si hay migraciones nuevas
+```
 
-Reemplaza a Vercel a propósito: su plan Hobby es solo para uso **no comercial**, y
-si SOMA sirve trabajo facturable corresponde Pro ($20/mes). Los cinco headers de
-seguridad que vivían en `vercel.json` están portados al blueprint.
+Los secretos de producción se cargan con `wrangler secret put <NOMBRE>`. R2 (el
+binding `FILES`) está comentado en `wrangler.jsonc` hasta activarlo en el
+dashboard.
 
-Después del primer despliegue hay que ajustar `VITE_API_BASE` y `CORS_ORIGINS`
-con los dominios que Render asigne realmente, y crear la cuenta de administración
-una vez contra el servicio desplegado.
+## Cómo se leen las facturas, y por qué así
 
-**Aviso:** mientras el API siga en SQLite sobre disco efímero, la base se
-reinicia en cada despliegue. Sirve para probar, no para datos reales. Lo resuelve
-`SOMA-ADR-004` con Postgres gestionado.
+- **Sin OCR.** Las facturas de proveedor traen capa de texto, así que los
+  dígitos exactos ya están en el archivo. Rasterizarlas para que un motor los
+  adivine degrada un dato correcto.
+- **Extracción posicional.** Las palabras se agrupan por su coordenada Y y se
+  reparten según la X de los títulos de columna. El orden de lectura del PDF no
+  coincide con el visual.
+- **Un solo lector de dinero** (`domain/facturas.ts`) para `$150,000.00`,
+  `73.361,34` y `330.000`. El último separador es decimal solo si le siguen
+  exactamente dos dígitos.
+- **Dos validaciones**: que los ítems sumen el subtotal, y que subtotal más IVA
+  dé el total, con una tolerancia de un peso.
+- **Añadir un proveedor** es añadir un perfil de emisor en
+  `domain/extraction.ts`. No toca las rutas ni los repositorios.
+
+## Herramientas
+
+- `docker compose up -d dsh` levanta el harness de DeepSeek aislado sobre el
+  repo. La clave va en `.env`; la plantilla está en `.env.example`.
+- `tools/e2e/` tiene scripts de navegador para el asesor y las secciones.
+- Las skills del proyecto están en `.claude/skills/`, y la documentación viva
+  en [`docs/index.md`](docs/index.md).
 
 ## Próximos pasos
 
-En orden. El detalle está en [`docs/PLAN-INGESTA-FACTURAS.md`](docs/PLAN-INGESTA-FACTURAS.md).
-
-1. **Pantalla de `needs_review`.** Hoy las 45 facturas en revisión existen solo en
-   la base. Sin una pantalla que las muestre y permita corregirlas, un documento
-   que el parser no entiende desaparece en silencio — peor que no procesarlo. Es
-   criterio de aceptación, no una mejora posterior.
-2. **Perfiles de emisor faltantes.** Catorce facturas no tienen parser. Cada
-   perfil nuevo es una entrada en `PERFILES`, con la factura real como evidencia.
-3. **Ítems de Sodimac y similares.** Veinte facturas reconocen al emisor pero no
-   separan la tabla: su encabezado ocupa tres líneas y los importes no tienen
-   columna titulada.
-4. **`bootstrap_admin` en producción.** Sigue siendo un `python -m` que alguien
-   debe ejecutar dentro del contenedor. Hay que decidir entre un shell del
-   servicio, un job de una sola vez, o un arranque idempotente.
-5. **Postgres gestionado** (`SOMA-ADR-004`): migrar a Neon, mover los binarios a
-   almacenamiento de objetos y dejar en la base solo referencia y hash.
-6. **Cron de ingesta.** Último, y el único costo fijo del plan: $1/mes en Render.
-   Un cron solo *agenda* un comando que ya funciona.
-
-Resuelto: el bundle de documentación OKF vive en `docs/` de este repositorio
-(ver `docs/index.md`). Quien clone recibe los ADRs con el código que describen.
-El razonamiento de qué se versiona aquí y qué se queda en la máquina está en
-`docs/SOMA-ADR-007-frontera-de-la-documentacion.md`.
+1. **Playwright en Docker**: pruebas E2E reproducibles, con capturas y videos,
+   contra `wrangler dev`.
+2. **Subida de videos a R2**: pide activar R2 y escribir un ADR para las
+   subidas grandes.
+3. **Verificar Access en `/admin`** con Google y OTP en producción.
 
 ## Seguridad
 
-Las credenciales de proveedor y las claves de API nunca van en la web ni en
-variables `VITE_*`: viven solo en el entorno del API. No se commitean `.env`,
-`node_modules/` ni `dist/`.
-
-El texto extraído de un documento es **contenido no confiable**: no puede
-originar SQL, shell, filesystem ni llamadas a herramientas con escritura.
+- Ningún secreto va en la UI ni en variables `VITE_*`: el frontend es del mismo
+  origen y no lee entorno.
+- No se commitean `.env`, `.dev.vars`, `node_modules/`, `dist/` ni facturas
+  reales.
+- El texto extraído de un documento es **contenido no confiable**. No puede
+  originar SQL, shell ni llamadas a herramientas con escritura.
+- El LLM no calcula cifras: llama tools del servidor que usan `domain/`.
+- El Worker añade CSRF, cabeceras de seguridad y límites de tamaño. La CSP
+  está en `public/_headers`.

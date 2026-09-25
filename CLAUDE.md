@@ -1,108 +1,109 @@
 # SOMA
 
-Plataforma de arquitectura: sitio público de ventas + control room administrativo
-para lectura de facturas, costos unitarios (APU) y simulación de proyectos de obra.
+Plataforma de arquitectura con dos caras: un sitio público de ventas, con
+simulador y asesor, y un panel administrativo para leer facturas, llevar costos
+unitarios (APU) y simular proyectos de obra.
 
-Usuario objetivo actual: **una sola persona** (el dueño del producto). Cualquier
-propuesta debe justificarse a esa escala antes de añadir servicios, réplicas o
-capas.
+Hay **un solo usuario** real, la dueña del producto. Cualquier propuesta tiene
+que justificarse a esa escala antes de añadir servicios, colas o capas.
 
-## Layout
+## Stack (ver `docs/SOMA-ADR-009-cloudflare.md`)
 
-Monorepo con dos unidades de despliegue. **No dividir en varios repositorios**
-(ver `SOMA-ADR-003`): la separación que importa es de *capas de código*, no de
-repos.
+Un solo Worker de Cloudflare, en el plan gratis, sirve la SPA y el API:
 
-| Unidad | Ruta | Stack | Destino |
-| --- | --- | --- | --- |
-| Web | raíz (`src/`) | React 19 + Vite | Render static |
-| API | `api/` | FastAPI + uv, Python 3.12 | Render web (`api/Dockerfile`) |
+| Pieza | Ruta | Qué es |
+| --- | --- | --- |
+| UI | `src/` | React 19 + Vite. Se sirve como assets desde `dist/client` |
+| API | `worker/` | Hono en TS: `routes/ → services/ → repositories/` |
+| Dominio | `domain/` | Reglas puras (costeo, simulación, facturas, dinero), compartidas por la UI y el Worker |
+| Esquema | `migrations/` | SQL de D1, numerado |
+| Config | `wrangler.jsonc` | Bindings `DB` (D1), `AI`, `ASESOR_LIMITE`, `ASSETS`; `FILES` (R2) comentado hasta activarlo |
 
-Despliegue declarado en `render.yaml`, en la raíz. Un solo proveedor a
-propósito; ver `docs/SOMA-ADR-008-stack-de-despliegue.md`. El plan gratuito del
-API **duerme** tras inactividad: la primera petición tarda decenas de segundos,
-y no es un fallo.
+- Producción: `https://soma.mireya-compromisos.workers.dev`.
+- `/admin` y `/api/admin` están detrás de Cloudflare Access, y además el Worker
+  exige que el correo esté en `ADMIN_EMAILS`.
+- **Es un monorepo, y no se divide en repos** (ADR-003 y ADR-009). La separación
+  que importa es de capas, y `domain/` se comparte entre la UI y el Worker.
+- Ya no existen `api/` (FastAPI), Render, Neon, Vercel ni Caddy. Si un documento
+  viejo los menciona, manda el ADR-009.
 
-Documentación viva: bundle OKF en `docs/` de este repositorio (ver `docs/index.md`).
-Toda decisión de arquitectura se registra ahí como ADR, no en comentarios de código.
+Documentación viva: el bundle OKF de `docs/` (empezar por `docs/index.md`).
+Toda decisión de arquitectura va ahí como ADR, no en comentarios de código.
 
 ## Comandos
 
 ```powershell
-# API
-uv sync --directory api
-uv run --directory api pytest                    # 58 tests, deben pasar todos
-uv run --directory api uvicorn soma_api.main:app --app-dir src --reload --port 8000
-uv run --directory api python -m soma_api.bootstrap_admin --username admon --password <pwd>
-
-# Web
 npm install
-npm run dev          # 127.0.0.1:5173
-npm run build        # obligatorio antes de dar por hecho un cambio de frontend
+npm run dev                  # vite con el runtime de Workers
+npm test                     # vitest: 127 tests, tienen que pasar todos
+npm run typecheck
+npm run build                # obligatorio antes de dar por hecho un cambio
+npm run db:migrate:local     # tras añadir un archivo en migrations/
+npx wrangler dev --port 8787 --ip 127.0.0.1   # hace falta para probar Workers AI
 ```
+
+`npm run deploy` corre typecheck, test y build, y después `wrangler deploy`. Toca
+producción: **se pide confirmación antes**. `db:migrate:remote` también.
+
+Los secretos locales van en `.dev.vars` (ignorado). En producción se cargan con
+`wrangler secret put`. Nunca se leen ni se imprimen en el chat.
 
 ## Invariantes (no romper sin un ADR)
 
-1. **El esquema solo cambia por migraciones.** Toda tabla nueva se declara en
-   `api/src/soma_api/migrations.py` como una función + entrada en `MIGRATIONS`.
-   Nunca un `CREATE TABLE` suelto ni un `executescript` de esquema.
-2. **Las reglas de negocio viven en `domain/`.** Sin FastAPI, sin sqlite3, sin
-   LLM. `test_architecture_layering.py` lo verifica por AST. Un cálculo tiene
-   **una** implementación: si el usuario lo ve antes de guardar, lo calculó el
-   backend.
-3. **El dinero es `Decimal`, nunca `float`.** Todo importe pasa por
-   `domain.costing.money()` en cada paso del cálculo.
-4. **El SQL vive en `repositories.py`.** Las rutas no abren conexiones ni
-   escriben SQL. Si una ruta necesita datos, pasa por un repositorio.
-5. **Nada en la UI que no exista en el backend.** Si una pantalla llama una ruta
-   no implementada, se oculta la pantalla — no se deja fallar al usuario. Es
-   criterio de aceptación de la Fase 0.
-6. **Secretos jamás en `VITE_*`.** El frontend solo recibe `VITE_API_BASE`.
-   Claves de proveedor, `JWT_SECRET` y `DATABASE_PATH` viven solo en el entorno
-   del API.
-7. **El LLM no es fuente de verdad numérica.** Los cálculos de costo, duración y
-   ROI los hace Python de forma determinista. El agente puede leer, no calcular
-   la cifra final.
-8. **MCP es de solo lectura y con allowlist.** `MCP_ENABLED=false` por defecto;
-   habilitarlo exige `MCP_ALLOWED_TOOLS` explícito.
+`tests/architecture/` verifica la mayoría. Si un test de arquitectura falla, se
+arregla el código, no el test.
 
-## Estado real vs. documentado
-
-El backend implementa: `/health`, `/ready`, `/api/admin/login|me|summary`,
-`/api/admin/supplies|apus|proyectos`, `/api/sales/simulation`,
-`/api/agui/architect` (SSE).
-
-**No implementado** (no exponer en UI): `/api/pipeline/process`, `/api/rag/index`,
-`/api/rag/query`, `/api/chat`, `/api/report/excel`.
+1. **El esquema solo cambia por migraciones.** Cada cambio es un archivo nuevo
+   en `migrations/`. Nunca se edita una migración ya aplicada.
+2. **Las reglas de negocio viven en `domain/`**, sin Hono, D1 ni LLM. Un cálculo
+   tiene **una** implementación: la UI importa la misma función del dominio que
+   usa el Worker.
+3. **El dinero son centavos enteros** en D1 y `big.js` en los cálculos. Nunca un
+   `number` con decimales para un importe.
+4. **El SQL vive solo en `worker/repositories/`.** Las rutas no escriben SQL ni
+   calculan costos: llaman a `services/`. Las escrituras de varios pasos van en
+   `db.batch`, porque D1 no tiene transacciones interactivas.
+5. **Nada en la UI que no exista en el API.** `route-contract.test.ts` falla si
+   el frontend llama una ruta que el Worker no tiene.
+6. **El frontend no lee variables de entorno.** Todo es del mismo origen. Los
+   secretos (`ADMIN_EMAILS`, `CF_ANALYTICS_TOKEN`) viven solo en el Worker, y
+   nunca en `VITE_*`.
+7. **El LLM no es fuente de verdad numérica.** Costo, duración y ROI los calcula
+   `domain/`. El asesor y el copiloto llaman tools que ejecuta el servidor y
+   comentan el resultado.
+8. **Toda IA pública tiene tope**: el límite por IP (`ASESOR_LIMITE`) y el tope
+   diario en D1 (`uso_asesor`). Una ruta nueva que llame a Workers AI necesita
+   los dos.
+9. **Los datos reales de facturas nunca se commitean.**
 
 ## Convenciones
 
-- Español para texto de usuario y mensajes de error de la API; inglés para
-  identificadores de código.
-- `App.jsx` usa un estilo muy denso (un componente por línea). Al editarlo,
-  respetar ese estilo en vez de reformatear el archivo entero.
-- Los tests de API viven en `api/tests/` y usan `TestClient` + `tmp_path` con
-  `monkeypatch.setenv("DATABASE_PATH", ...)`.
+- Español para el texto de usuario y los mensajes de error del API; inglés o
+  español llano en los identificadores, según lo que ya use el archivo.
+- Las pruebas del Worker viven en `tests/api` (runtime de Workers), las del
+  dominio en `tests/domain` y las de capas en `tests/architecture`.
 
-## Entorno Windows
+## Skills del proyecto (`.claude/skills/`)
 
-- `pkill` desde Git Bash **no mata procesos de Windows**. Usar `Stop-Process`.
-- Antes de culpar a Docker por un 404/503, comprobar que nada más ocupe el
-  puerto 8000: un `uvicorn` huérfano lo secuestra y el proxy no registra ni una
-  línea. Ausencia de logs del proxy es la pista.
-- En heredocs de Python, `"\n"` se convierte en salto real. Usar `chr(92)`.
-- La exportación por CLI de draw.io **sí funciona** si hay sesión de escritorio
-  activa; se cuelga solo si no la hay. Invocar por ruta completa, no está en el
-  PATH. Ver la skill `soma-diagrams`.
+| Skill | Cuándo |
+| --- | --- |
+| `soma-verificar` | Levantar servidores, probar el asesor, navegador y producción |
+| `soma-domain` | Reglas de negocio y capas |
+| `soma-data-layer` | Migraciones D1 y repositorios |
+| `soma-frontend` | UI, textos y navegación |
+| `soma-facturas` | Extracción de facturas en PDF |
+| `soma-docs-okf` | Documentación y ADRs |
+| `soma-diagrams` | Diagramas |
 
-## Skills del proyecto
+Las skills guardan lecciones que ya costaron caro. **Leer la que toque antes de
+reimplementar algo**: en la extracción de facturas se repitieron tres errores
+que ya estaban diagnosticados. Lo que se aprenda del entorno se registra en la
+skill en el momento (skill global `registrar-leccion`).
 
-`soma-domain` (reglas de negocio y capas), `soma-data-layer` (migraciones y
-repositorios), `soma-frontend` (UI, textos, navegación), `soma-facturas`
-(extracción de facturas en PDF), `soma-docs-okf` (documentación),
-`soma-diagrams` (diagramas), `soma-verificar` (servidores locales, pruebas del asesor, deploy).
+## Herramientas de desarrollo
 
-Las skills registran lecciones que ya costaron caro. Antes de reimplementar algo
-con otra librería o enfoque, **leer la skill correspondiente**: en la extracción
-de facturas se repitieron tres errores ya diagnosticados y resueltos horas antes,
-y el resultado parecía un límite de la herramienta cuando era un error conocido.
+- `docker compose up -d dsh` levanta el harness de DeepSeek (dsh) aislado sobre
+  el repo. Ver la skill global `dsh-harness`.
+- `tools/e2e/` tiene scripts de navegador para el asesor y las secciones.
+- Windows: `pkill` no mata procesos y `TaskStop` no libera puertos. Ver la
+  skill global `windows-dev`.

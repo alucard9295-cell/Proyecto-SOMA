@@ -1,5 +1,14 @@
 # Log
 
+## 2026-09-25
+
+- [ADR-009](SOMA-ADR-009-cloudflare.md): **todo SOMA en Cloudflare**, un Worker
+  con Hono, D1, Access y Workers AI, a $0 en el plan gratis. Registra la
+  migración del commit `e5002bc`, que la documentación no reflejaba. Sustituye al
+  ADR-008 (Render + Neon) y al ADR-004 (Postgres), ambos `deprecated`, y deja sin
+  efecto la parte de proveedores de los ADR-001, 002 y 006. `CLAUDE.md`,
+  `AGENTS.md` y `README.md` se reescriben con el stack real.
+
 ## 2026-08-27
 
 - [ADR-008](SOMA-ADR-008-stack-de-despliegue.md): stack de despliegue. **Render

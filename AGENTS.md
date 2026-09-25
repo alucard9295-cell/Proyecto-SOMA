@@ -1,31 +1,33 @@
-# SOMA React Frontend
+# SOMA
 
-## Scope
+Instrucciones para agentes que no son Claude Code (OpenCode, dsh). La versión
+completa, con invariantes y comandos, está en `CLAUDE.md`, y manda sobre esta.
 
-React/Vite SPA for the public SOMA landing page and the local operational
-panel. The FastAPI control plane in `api/` remains the only backend boundary.
+## Alcance
 
-## Commands
+Un solo Worker de Cloudflare (Hono en `worker/`) sirve la SPA de React (`src/`)
+y el API (`/api/*`). Las reglas de negocio viven en `domain/`, que comparten la
+UI y el Worker. Los datos están en D1 (`migrations/`) y la IA es Workers AI.
+Stack y motivos: `docs/SOMA-ADR-009-cloudflare.md`. Ya no existe `api/`
+(FastAPI).
 
-- Install: `npm install`.
-- Development: `npm run dev`.
-- Production build: `npm run build`.
-- Preview build: `npm run preview`.
+## Comandos
 
-## Architecture
+- `npm install`, `npm run dev`, `npm test` (vitest), `npm run typecheck` y
+  `npm run build`.
+- `npm run deploy` y `npm run db:migrate:remote` tocan producción: no se
+  ejecutan sin que lo pida la persona.
 
-- `src/App.jsx`: view routing and API-connected modules.
-- `src/styles.css`: design tokens, responsive layout and animations.
-- `src/assets/`: owned SVG assets and future project imagery.
-- `VITE_API_BASE`: public backend URL only; never place secrets in frontend env. Local default is `http://127.0.0.1:8000`.
-- The chat generation provider is selected in the UI, but Go credentials stay in the Python `.env`.
+## Reglas
 
-## Rules
-
-- Keep business secrets in FastAPI, never in React.
-- Treat the landing page as commercial and the panel as operational.
-- Preserve accessible labels, keyboard actions and reduced-motion behavior.
-- Use the design rules in `docs/design/` (sistema.md + la spec de la superficie) before adding components.
+- Capas: `routes → services → repositories`; el SQL solo en `repositories/`.
+  Los tests de `tests/architecture/` lo verifican.
+- El dinero se guarda en centavos enteros y se calcula con `big.js`. El LLM
+  nunca calcula cifras.
+- Ningún secreto en el frontend ni en `VITE_*`. No leer `.env` ni `.dev.vars`.
+- La landing es comercial y el panel es operativo. Respetar las etiquetas
+  accesibles, el teclado y `reduced-motion`. Reglas de diseño en `docs/design/`.
+- Skills del proyecto en `.claude/skills/` (las lee OpenCode también).
 
 ## graphify
 

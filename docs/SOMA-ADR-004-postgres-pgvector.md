@@ -3,7 +3,7 @@ type: Architecture Decision Record
 title: Postgres con pgvector como único motor de datos
 description: Decide migrar de SQLite a Postgres gestionado e integrar los embeddings en el mismo motor en lugar de desplegar Chroma.
 tags: [soma, adr, database, postgres, pgvector, rag]
-status: draft
+status: deprecated
 generated: { by: claude-code/opus-5, at: 2026-08-24T00:00:00Z }
 sources:
   - id: adr-003

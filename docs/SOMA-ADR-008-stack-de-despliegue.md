@@ -3,7 +3,7 @@ type: Architecture Decision Record
 title: Stack de despliegue — un solo proveedor de ejecución
 description: Decide Render para web y API y Neon para datos, y explica por qué se descartan Vercel y Railway pese a estar ya escritos en la documentación anterior.
 tags: [soma, adr, despliegue, costos, render, neon, vercel, railway]
-status: draft
+status: deprecated
 generated: { by: claude-code/opus-5, at: 2026-08-27T00:00:00Z }
 sources:
   - id: infra-costs

@@ -53,11 +53,12 @@ repositorio.
 * [ADR-001 API boundary](SOMA-ADR-001-api-boundary.md) - Web, authentication and agent separation.
 * [ADR-002 streaming and MCP](SOMA-ADR-002-agent-streaming-and-mcp.md) - LangGraph, SSE and optional MCP.
 * [ADR-003 capas y protocolos](SOMA-ADR-003-layering-and-boundaries.md) - Arquitectura hexagonal, monorepo y cuándo usar REST, SSE o cola.
-* [ADR-004 Postgres con pgvector](SOMA-ADR-004-postgres-pgvector.md) - Motor único de datos y embeddings; entornos por branch.
+* [ADR-004 Postgres con pgvector](SOMA-ADR-004-postgres-pgvector.md) - **Sustituido por el ADR-009.** Motor único de datos y embeddings; entornos por branch.
 * [ADR-005 endurecimiento de seguridad](SOMA-ADR-005-security-hardening.md) - Sesión por cookie, rol, y plan de pruebas ofensivas (planificado, sin implementar).
 * [ADR-006 ingesta documental](SOMA-ADR-006-ingesta-documental.md) - Origen `inbox/` en bucket, disparo por cron en Render, XML DIAN antes que PDF y parsers tras un puerto único.
 * [ADR-007 frontera de la documentación](SOMA-ADR-007-frontera-de-la-documentacion.md) - Por qué el bundle OKF vive en el repositorio y por qué la doctrina transversal y la infraestructura de memoria se quedan fuera.
-* [ADR-008 stack de despliegue](SOMA-ADR-008-stack-de-despliegue.md) - Render para web y API, Neon para datos; por qué se descartan Vercel y Railway.
+* [ADR-008 stack de despliegue](SOMA-ADR-008-stack-de-despliegue.md) - **Sustituido por el ADR-009.** Render para web y API, Neon para datos; por qué se descartan Vercel y Railway.
+* [ADR-009 todo en Cloudflare](SOMA-ADR-009-cloudflare.md) - Un Worker con Hono, D1, Access y Workers AI en el plan gratis; el stack vigente.
 
 ## Planes de trabajo
 
