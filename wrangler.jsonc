@@ -40,7 +40,11 @@
     // ADMIN_EMAILS (quien es admin) es secreto: `wrangler secret put ADMIN_EMAILS`.
     // Sin el, el admin tambien responde 503.
     "ACCESS_TEAM_DOMAIN": "",
-    "ACCESS_AUD": ""
+    "ACCESS_AUD": "",
+    // Panel de consumo del plan gratis. El token (Account Analytics: Read) es
+    // secreto: `wrangler secret put CF_ANALYTICS_TOKEN`. Sin el, el panel
+    // explica como crearlo y solo muestra el cupo del asesor.
+    "CF_ACCOUNT_ID": "ade189f7e45e0b5576eb5c4db1229591"
   },
   "observability": { "enabled": true }
 }

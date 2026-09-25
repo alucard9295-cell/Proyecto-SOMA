@@ -35,8 +35,8 @@ Ayudas al dueno a encontrar informacion y a moverse por la herramienta. Usa ir_a
 ${REGLAS}`,
     herramientasCliente: {
       ir_a: tool({
-        description: "Abre una seccion del control room: resumen (KPIs), insumos (catalogo y precios), apus (analisis de precios unitarios), simulador (proyecto de obra), revision (facturas que no cerraron), orientacion (guia de uso).",
-        inputSchema: z.object({ seccion: z.enum(["resumen", "insumos", "apus", "simulador", "revision", "orientacion"]) }),
+        description: "Abre una seccion del control room: resumen (KPIs), insumos (catalogo y precios), apus (analisis de precios unitarios), simulador (proyecto de obra), revision (facturas que no cerraron), consumo (uso del plan gratis de Cloudflare), orientacion (guia de uso).",
+        inputSchema: z.object({ seccion: z.enum(["resumen", "insumos", "apus", "simulador", "revision", "consumo", "orientacion"]) }),
       }),
     },
     herramientasServidor: {

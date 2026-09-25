@@ -6,6 +6,7 @@ import { request } from "../lib/api.js";
 import { navigate } from "../lib/route.js";
 import ApuBuilder from "./ApuBuilder.jsx";
 import ApuEditor from "./ApuEditor.jsx";
+import Consumo from "./Consumo.jsx";
 import Dashboard from "./Dashboard.jsx";
 import Guide from "./Guide.jsx";
 import ProjectSimulator from "./ProjectSimulator.jsx";
@@ -19,6 +20,7 @@ const SECCIONES = {
   "/admin/apus": () => <><ApuBuilder /><ApuEditor /></>,
   "/admin/simulador": ProjectSimulator,
   "/admin/revision": RevisionFacturas,
+  "/admin/consumo": Consumo,
   "/admin/orientacion": Guide,
 };
 

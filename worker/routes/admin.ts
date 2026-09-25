@@ -9,6 +9,7 @@ import { HttpError } from "../errors";
 import { requireAccess } from "../middleware/access";
 import { repos } from "../repositories";
 import * as apus from "../services/apus";
+import { consumoPlan } from "../services/consumo";
 import { perfilCopiloto } from "../services/asistentes";
 import { correr, modeloDe } from "../services/copiloto";
 import * as documents from "../services/documents";
@@ -93,6 +94,7 @@ export const admin = new Hono<AppEnv>()
   .use(requireAccess)
   .get("/me", (c) => c.json({ email: c.get("actor") }))
   .get("/summary", async (c) => c.json(await documents.summary(repos(c.env.DB))))
+  .get("/consumo", async (c) => c.json(await consumoPlan(repos(c.env.DB), { cuenta: c.env.CF_ACCOUNT_ID, token: c.env.CF_ANALYTICS_TOKEN })))
   .post("/copiloto", validate("json", corridaInput({ mensajes: 40, texto: 4000 })), (c) =>
     sse(c, correr(modeloDe(c.env.AI), perfilCopiloto(repos(c.env.DB)), c.req.valid("json"), registrarFallo(c))))
 

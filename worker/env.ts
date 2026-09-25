@@ -11,6 +11,10 @@ export interface Env {
   ACCESS_AUD: string;
   /** Secreto (wrangler secret put): emails admitidos, separados por comas. */
   ADMIN_EMAILS?: string;
+  /** Cuenta de Cloudflare cuyo consumo muestra el control room (no es secreto). */
+  CF_ACCOUNT_ID?: string;
+  /** Secreto: token de solo lectura "Account Analytics: Read" para /api/admin/consumo. */
+  CF_ANALYTICS_TOKEN?: string;
 }
 
 export interface Variables {

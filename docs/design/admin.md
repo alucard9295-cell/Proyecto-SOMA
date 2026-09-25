@@ -57,6 +57,12 @@ Una tarjeta por servicio con barra de progreso uso/límite del periodo:
 - Barra oliva hasta 70 %, terracota de 70 a 90 %, tinta con aviso por encima.
 - Fuente: GraphQL Analytics API de Cloudflare, con un token de solo lectura
   guardado como secreto del Worker; el navegador nunca ve el token.
+  Datasets verificados contra la API real (`worker/services/consumo.ts`):
+  `workersInvocationsAdaptive.sum.requests`,
+  `d1AnalyticsAdaptiveGroups.sum.rowsRead|rowsWritten` (filtro `date`),
+  `d1StorageAdaptiveGroups.max.databaseSizeBytes` (una fila por base: se suman;
+  no admite `orderBy date`) y `aiInferenceAdaptiveGroups.sum.totalNeurons`
+  (filtro `datetime_geq/leq`). Los límites diarios se reinician a las 00:00 UTC.
 - Sin token configurado, la sección muestra cómo crearlo en vez de fallar.
 - Pie con la hora de la consulta; los datos de Cloudflare llegan con minutos de
   retraso y así se dice.

@@ -38,7 +38,8 @@ nav:
     - { ruta: /admin/apus, numero: "03", etiqueta: APUs }
     - { ruta: /admin/simulador, numero: "04", etiqueta: Simulador }
     - { ruta: /admin/revision, numero: "05", etiqueta: Revisión }
-    - { ruta: /admin/orientacion, numero: "06", etiqueta: Orientación }
+    - { ruta: /admin/consumo, numero: "06", etiqueta: Consumo }
+    - { ruta: /admin/orientacion, numero: "07", etiqueta: Orientación }
 
 resumen:
   eyebrow: SOMA / LECTURA OPERATIVA
@@ -71,7 +72,7 @@ resumen:
 # Esta sección describía Facturas, Chroma, Inteligencia y DeepSeek: ninguno
 # existe en el producto actual. Reescrita para contar lo que sí hace.
 orientacion:
-  eyebrow: 06 / ORIENTACIÓN
+  eyebrow: 07 / ORIENTACIÓN
   titulo_linea1: Una guía para
   titulo_linea2: costear
   titulo_enfasis: mejor.
@@ -226,6 +227,32 @@ copiloto:
     Puedo buscar insumos y precios, resumir cómo va el negocio o llevarte a la
     sección que necesites.
   placeholder: Pregunta o pide una sección...
+
+consumo:
+  eyebrow: 06 / PLAN GRATIS DE CLOUDFLARE
+  titulo_linea1: Cuánto queda
+  titulo_enfasis: del plan gratis.
+  intro: >-
+    Uso de hoy frente a los límites gratuitos. Los contadores diarios de
+    Cloudflare vuelven a cero a las 00:00 UTC (7:00 p. m. en Bogotá).
+  cargando: Consultando a Cloudflare...
+  periodo_dia: hoy
+  periodo_total: en total
+  de: de
+  sin_dato: sin dato
+  actualizar: Actualizar
+  consultado: Consultado a las
+  retraso: Las cifras de Cloudflare llegan con unos minutos de retraso.
+  aviso_alto: Cerca del límite. Pasado el 100 %, Cloudflare rechaza lo que exceda hasta el reinicio.
+  sin_token_titulo: Falta conectar la analítica de Cloudflare
+  sin_token_texto: >-
+    Por ahora solo se ve el cupo del asesor. Para ver el resto, crea un token
+    de solo lectura y guárdalo como secreto del Worker:
+  sin_token_pasos:
+    - "Cloudflare → My Profile → API Tokens → Create Token → Custom token."
+    - "Permiso: Account · Account Analytics · Read. Recurso: tu cuenta. Nada más."
+    - "Guárdalo como secreto CF_ANALYTICS_TOKEN del Worker soma (Workers → soma → Settings → Variables and Secrets)."
+  error_titulo: Cloudflare no respondió
 
 revision:
   eyebrow: FACTURAS EN REVISIÓN

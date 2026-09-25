@@ -88,7 +88,7 @@ function HerramientasAsesor() {
   return null;
 }
 
-const SECCIONES = ["resumen", "insumos", "apus", "simulador", "revision", "orientacion"];
+const SECCIONES = ["resumen", "insumos", "apus", "simulador", "revision", "consumo", "orientacion"];
 const ruta = (seccion) => (seccion === "resumen" ? "/admin" : `/admin/${seccion}`);
 
 function HerramientasCopiloto() {
@@ -96,7 +96,7 @@ function HerramientasCopiloto() {
   useAgentContext({ description: "Seccion abierta del control room", value: path });
   useFrontendTool({
     name: "ir_a",
-    description: "Abre una seccion del control room: resumen (KPIs), insumos (catalogo y precios), apus (analisis de precios unitarios), simulador (proyecto de obra), revision (facturas que no cerraron), orientacion (guia de uso).",
+    description: "Abre una seccion del control room: resumen (KPIs), insumos (catalogo y precios), apus (analisis de precios unitarios), simulador (proyecto de obra), revision (facturas que no cerraron), consumo (uso del plan gratis de Cloudflare), orientacion (guia de uso).",
     parameters: z.object({ seccion: z.enum(SECCIONES) }),
     handler: async ({ seccion }) => { navigate(ruta(seccion)); return `${copy.asistente.seccion_abierta} ${seccion}.`; },
     ...CONFIRMAR,

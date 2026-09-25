@@ -11,5 +11,11 @@ export function usoAsesorRepository(db: D1Database) {
         .first();
       return fila !== null;
     },
+
+    /** Respuestas ya dadas en el dia (0 si todavia no hubo ninguna). */
+    async delDia(dia: string): Promise<number> {
+      const fila = await db.prepare("SELECT respuestas FROM uso_asesor WHERE dia = ?").bind(dia).first<{ respuestas: number }>();
+      return fila?.respuestas ?? 0;
+    },
   };
 }
