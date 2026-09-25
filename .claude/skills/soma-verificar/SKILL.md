@@ -56,6 +56,8 @@ sin área, "¿qué es un APU?" (una de las sugerencias del propio asesor).
 - Tipos: `npm run typecheck` (dos tsconfig: `.` y `tsconfig.node.json`); `tsc -p worker` no existe.
 - Buscar en el repo con la herramienta Grep y un `glob` (`{worker/**,src/**}`), nunca `grep -r .`
   desde la raíz: recorre `node_modules` y `.wrangler` y se cuelga más de 2 minutos.
+  El glob no admite llaves anidadas: `{worker/**/*.ts,src/**/*.{js,jsx}}` falla con "nested
+  alternate groups are not allowed". Un solo nivel de llaves, o dos búsquedas.
 
 ## Probar en navegador (flujo completo)
 
@@ -78,13 +80,21 @@ render de Streamdown es solo cliente: el SSR sale vacío, no sirve para verifica
   cuenta. Con la regla `Bash(npx wrangler:*)` en `/permissions` pasan. Crear la organización de
   Zero Trust (Access) la bloquea aunque vaya por el MCP de Cloudflare: la activa el usuario en
   el dashboard. No reintentar por otra vía.
-- **Access por el MCP: solo lectura.** El token del MCP lee `access/organizations|apps|
-  identity_providers`, pero todo POST ahí devuelve `1010: undefined` (le falta el permiso de
-  escritura de Access). Wrangler no tiene comandos de Access. La app y la política se crean en el
+- **Access por el MCP: solo lectura.** Hay dos errores distintos:
+  - `9999: access.api.error.not_enabled`: Zero Trust aún no se activó en la cuenta.
+    Lo activa el usuario.
+  - `1010: undefined`: Access ya está activo, pero es un POST/PUT. El token del MCP lee
+    `access/organizations|apps|identity_providers` y no tiene permiso de escritura de Access. Wrangler no tiene comandos de Access. La app y la política se crean en el
   dashboard: con permiso del usuario, Claude lo hace por la extensión de Chrome. El dashboard de
   Zero Trust vive en `dash.cloudflare.com/<cuenta>/one/...` (`access-controls/apps`,
   `integrations/identity-providers`); los enlaces `one.dash.cloudflare.com/.../settings/...` dan
-  404. Luego se lee el `aud` por el MCP (GET sí funciona). Renombrar el team (`PUT organizations`)
+  404. Es una SPA pesada: la captura de pantalla puede fallar con "Page.captureScreenshot timed
+  out" y `find` no ve el menú mientras dice "Loading". Un solo reintento basta: no es que la
+  pestaña esté colgada. Luego se lee el `aud` por el MCP (GET sí funciona).
+- **GraphQL de Analytics (panel de consumo):** `orderBy: [date_DESC]` en
+  `d1StorageAdaptiveGroups` falla con "cannot order by date: it is neither aggregated, nor a
+  dimension". Quitar el `orderBy`. Antes de escribir una query, pedir los campos reales con
+  `__type(name: "<Grupo>")` en vez de adivinarlos. Renombrar el team (`PUT organizations`)
   lo bloquea el clasificador. El team real es `divine-bread-e664.cloudflareaccess.com`.
 - **App de Access "SOMA control room"** (autoalojada, destinos por ruta
   `soma.mireya-compromisos.workers.dev/admin` y `/api/admin`): protege solo esas rutas y deja la
