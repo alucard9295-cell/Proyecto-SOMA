@@ -39,8 +39,8 @@
     // lo de este archivo cualquier valor puesto a mano en el dashboard.
     // ADMIN_EMAILS (quien es admin) es secreto: `wrangler secret put ADMIN_EMAILS`.
     // Sin el, el admin tambien responde 503.
-    "ACCESS_TEAM_DOMAIN": "",
-    "ACCESS_AUD": "",
+    "ACCESS_TEAM_DOMAIN": "divine-bread-e664.cloudflareaccess.com",
+    "ACCESS_AUD": "c333a1af825d11b568c00db982b00287480cc89b912d6be864fcf7c070bdea60",
     // Panel de consumo del plan gratis. El token (Account Analytics: Read) es
     // secreto: `wrangler secret put CF_ANALYTICS_TOKEN`. Sin el, el panel
     // explica como crearlo y solo muestra el cupo del asesor.
