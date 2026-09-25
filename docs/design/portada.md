@@ -57,6 +57,6 @@ El asesor flota encima (ver [chat.md](chat.md)); no ocupa una sección.
 ## Guardrails
 
 - No prometer ROI, renta ni permisos: "escenario preliminar".
-- La CSP (`worker/middleware/hardening.ts`) permite `frame-src` solo para
+- La CSP de las páginas (`public/_headers`) permite `frame-src` solo para
   `https://www.google.com` (mapa). Cualquier otro embed exige cambiarla a
   propósito.

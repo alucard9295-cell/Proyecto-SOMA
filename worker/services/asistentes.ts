@@ -104,7 +104,8 @@ ${LO_QUE_DICE_EL_SITIO}`,
 export const TOPE_DIARIO_ASESOR = 60;
 
 function avisoCupoAgotado() {
-  const { agotado, whatsapp } = sitio.asesor;
+  const { agotado } = sitio.asesor;
+  const { whatsapp } = sitio.contacto;
   return whatsapp ? `${agotado} [WhatsApp](https://wa.me/${whatsapp})` : agotado;
 }
 

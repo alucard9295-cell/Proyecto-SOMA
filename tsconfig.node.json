@@ -3,6 +3,6 @@
   // route-contract importa worker/app para leer sus rutas: de ahi workers-types.
   "extends": "./tsconfig.json",
   "compilerOptions": { "types": ["node", "@cloudflare/workers-types"] },
-  "include": ["tests/architecture", "tools/**/*.ts"],
+  "include": ["tests/architecture", "tools/**/*.ts", "worker/yaml.d.ts"],
   "exclude": []
 }

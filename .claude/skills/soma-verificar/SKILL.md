@@ -19,6 +19,10 @@ Ambos servidores sirven el build: **`npm run build` antes de arrancarlos**; si n
 **Reconstruir con `wrangler dev` vivo lo rompe en Windows:** el build borra `dist/`, el watcher muere
 con `EPERM ... watch dist\client\assets\...` y el servidor responde 404 en `/`. Tras cada
 `npm run build`, parar el servidor por puerto y relanzarlo (no basta el recargado automático).
+**`vite preview` también:** tras reconstruir sigue sirviendo el `index.html` viejo, que pide CSS con
+el hash anterior (500) y la página no monta. Mismo remedio: relanzar tras cada build.
+**Las cabeceras de `public/_headers` (CSP) solo las aplica `wrangler dev`/producción**, no `vite
+preview`: un iframe o script bloqueado por CSP no se ve en preview.
 
 ## Antes de arrancar
 
@@ -47,7 +51,16 @@ curl -s -N -X POST $U/api/sales/asesor -H 'content-type: application/json' \
 Casos que ya fallaron y conviene repetir: unidades fuera de 1-4/6, "acabados buenos", mensaje
 sin área, "¿qué es un APU?" (una de las sugerencias del propio asesor).
 
+## Chequeos rápidos
+
+- Tipos: `npm run typecheck` (dos tsconfig: `.` y `tsconfig.node.json`); `tsc -p worker` no existe.
+- Buscar en el repo con la herramienta Grep y un `glob` (`{worker/**,src/**}`), nunca `grep -r .`
+  desde la raíz: recorre `node_modules` y `.wrangler` y se cuelga más de 2 minutos.
+
 ## Probar en navegador (flujo completo)
+
+`node tools/e2e/seccion.mjs <url> "<selector>" <salida.png> [ancho]` captura una sección (390 para
+móvil) e imprime los errores de consola, incluidas violaciones de CSP.
 
 `node tools/e2e/asesor.mjs <url> "<pregunta>" <salida.png>` con Chrome headless en el 9222
 (`--remote-debugging-port=9222 --user-data-dir=<scratchpad>`). Ver la captura con Read. El

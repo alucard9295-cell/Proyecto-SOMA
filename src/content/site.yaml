@@ -167,6 +167,28 @@ ventas:
       distribución, iluminación, jardín y posibilidades reales de adaptación.
     pie: Vista de lectura inicial · casa unifamiliar en Bogotá
 
+  contacto:
+    eyebrow: SOMA / CONTACTO
+    titulo_linea1: Visítanos
+    titulo_enfasis: o escríbenos.
+    descripcion: >-
+      Cuéntanos qué casa tienes y qué te gustaría hacer con ella. La primera
+      conversación es para entender el lugar, no para venderte una obra.
+    direccion_etiqueta: Dónde estamos
+    mapa_titulo: Mapa de Villa Luz, Engativá, Bogotá
+  footer:
+    legal: Las cifras del simulador son un escenario preliminar, no una cotización.
+
+# Canales de contacto: los usa la portada y el asesor (cuando se acaba el cupo).
+# Un canal vacio no se pinta. WhatsApp: indicativo + numero, solo digitos
+# (p. ej. 573001234567). Instagram y Facebook: URL completa del perfil.
+contacto:
+  direccion: Villa Luz, Engativá, Bogotá
+  mapa: https://www.google.com/maps?q=Villa+Luz,+Engativ%C3%A1,+Bogot%C3%A1&output=embed
+  whatsapp: ""
+  instagram: ""
+  facebook: ""
+
 # El asesor vive en un globo flotante, no en una sección de la página.
 asesor:
   titulo: Asesor SOMA
@@ -183,8 +205,6 @@ asesor:
   agotado: >-
     Por hoy ya respondí todas las consultas que puedo. Escríbenos por WhatsApp
     y te atendemos directamente.
-  # Numero con indicativo, solo digitos (p. ej. 573001234567). Vacio = sin enlace.
-  whatsapp: ""
 
 # Textos comunes de la ventana de chat (asesor y copiloto).
 asistente:

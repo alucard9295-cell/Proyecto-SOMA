@@ -3,9 +3,10 @@
 # connect-src 'self': el navegador solo habla con este Worker; CopilotKit no
 # llama a su nube porque no se le pasa publicApiKey.
 # style-src 'unsafe-inline': React y CopilotKit usan atributos style.
+# frame-src google.com: solo el mapa de contacto de la portada.
 # wasm-unsafe-eval: pdf.js decodifica algunas imagenes de facturas con wasm.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
