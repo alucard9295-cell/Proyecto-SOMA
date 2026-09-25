@@ -9,12 +9,12 @@ import { dec, money, sum, type Decimal, type DecimalInput } from "./money";
 
 // Un peso. Las facturas reales redondean: una de las de prueba declara un total
 // un peso mayor que subtotal + IVA. Rechazarla por eso seria ruido, no control.
-export const TOLERANCIA = dec("1.00");
+const TOLERANCIA = dec("1.00");
 
 // Un importe de factura siempre trae separador de miles. Exigirlo descarta el
 // ruido que rodea a las etiquetas del pie: el "19" de "IVA 19%" y el "2026" de
 // una fecha, que si no se cuelan como si fueran montos.
-export const IMPORTE = /\$?\s?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?/;
+const IMPORTE = /\$?\s?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?/;
 
 /**
  * Lee un importe en cualquiera de los formatos de los proveedores reales:

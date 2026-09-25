@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { request } from "../lib/api.js";
 import { money } from "../lib/format.js";
+import { SUPPLY_CATEGORIES } from "../../domain/costing";
 import ModuleHelper from "./ModuleHelper.jsx";
 
-export const SUPPLY_CATEGORIES = ["material", "mano_obra", "equipo", "transporte", "servicio_terceros"];
 
 export default function Supplies() {
   const [items, setItems] = useState([]); const [search, setSearch] = useState(""); const [category, setCategory] = useState(""); const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");

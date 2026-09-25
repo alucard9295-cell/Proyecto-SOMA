@@ -14,7 +14,7 @@ import { generateText, stepCountIs, type LanguageModel, type ModelMessage, type 
 import { createWorkersAI } from "workers-ai-provider";
 
 /** Con tool calling y dentro de los 10k neuronas/dia gratis. Ver ADR del copiloto. */
-export const MODELO = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+const MODELO = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 
 export const modeloDe = (ai: Ai): LanguageModel => createWorkersAI({ binding: ai })(MODELO);
 
@@ -63,7 +63,7 @@ function argumentos(texto: string): unknown {
 }
 
 /** AG-UI -> mensajes del AI SDK. Los de sistema del cliente no pasan. */
-export function mensajesModelo(mensajes: MensajeEntrada[], publico = false, resultados: Perfil["resultados"] = {}): ModelMessage[] {
+function mensajesModelo(mensajes: MensajeEntrada[], publico = false, resultados: Perfil["resultados"] = {}): ModelMessage[] {
   const nombres = new Map<string, string>();
   const salida: ModelMessage[] = [];
   for (const m of mensajes) {

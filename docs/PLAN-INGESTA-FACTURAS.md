@@ -1,6 +1,6 @@
 # Plan de ingesta de facturas
 
-**Estado:** en curso · **Rama:** `feat/ingesta-lote-historico` · **Actualizado:** 2026-08-26
+**Estado:** obsoleto (el extractor Python se sustituyó por `domain/extraction`, ADR-009) · **Rama:** `feat/ingesta-lote-historico` · **Actualizado:** 2026-08-26
 
 Este documento vive dentro del repo, igual que el resto del bundle OKF desde
 el [ADR-007](SOMA-ADR-007-frontera-de-la-documentacion.md). Todo lo que haga

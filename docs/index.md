@@ -15,23 +15,23 @@ Bundle OKF v0.2. Un archivo = un concepto. Convenciones de escritura en la skill
 
 * [SOMA architecture and deployment](SOMA.md) - Current system boundaries and operational state.
 * [SOMA PRD](SOMA-PRD.md) - Product scope, requirements and non-goals.
-* [Architecture plan 2026-08-11](SOMA-ARCHITECTURE-PLAN-2026-08-11.md) - Target architecture and phased backlog.
-* [Deployment guide](SOMA-DEPLOYMENT-GUIDE.md) - Pasos de despliegue de la web y del API.
+* [Architecture plan 2026-08-11](SOMA-ARCHITECTURE-PLAN-2026-08-11.md) - **Histórico: foto anterior al ADR-009.** Target architecture and phased backlog.
+* [Deployment guide](SOMA-DEPLOYMENT-GUIDE.md) - **Obsoleto: describe el stack anterior al ADR-009.** Pasos de despliegue de la web y del API.
 
 ## Datos e infraestructura
 
 * [Gobierno de datos](SOMA-DATA-GOVERNANCE.md) - Capas medallón, clasificación de tablas, nomenclatura, entornos y retención.
-* [Topología y costos](SOMA-INFRA-AND-COSTS.md) - Servicios, puertos, comunicación y coste mensual estimado.
+* [Topología y costos](SOMA-INFRA-AND-COSTS.md) - **Obsoleto: describe el stack anterior al ADR-009.** Servicios, puertos, comunicación y coste mensual estimado.
 
 ## Calidad y operación
 
-* [Diagnóstico 2026-08-24](SOMA-DIAGNOSTIC-2026-08-24.md) - Estado real tras integrar el control plane de construcción.
-* [Evaluación multi-arista 2026-08-24](SOMA-EVALUATION-2026-08-24.md) - Puntuación por arista y veredicto sobre reescribir fuera de Python.
+* [Diagnóstico 2026-08-24](SOMA-DIAGNOSTIC-2026-08-24.md) - **Histórico: foto anterior al ADR-009.** Estado real tras integrar el control plane de construcción.
+* [Evaluación multi-arista 2026-08-24](SOMA-EVALUATION-2026-08-24.md) - **Histórico: foto anterior al ADR-009.** Puntuación por arista y veredicto sobre reescribir fuera de Python.
 * [Plan de pruebas E2E](SOMA-E2E-TEST-PLAN.md) - Casos de uso Playwright y verificación de seguridad.
 * [Harness de ingeniería](SOMA-HARNESS.md) - MCPs, skills, orquestación de subagentes y brechas.
-* [Clean Code review](SOMA-CLEAN-CODE-REVIEW-2026-08-11.md) - Clean Code, SOLID, KISS and testing assessment.
+* [Clean Code review](SOMA-CLEAN-CODE-REVIEW-2026-08-11.md) - **Histórico: foto anterior al ADR-009.** Clean Code, SOLID, KISS and testing assessment.
 * [MCP and document pipeline plan](SOMA-MCP-PDF-PLAN.md) - Knowledge MCPs and asynchronous PDF processing.
-* [External audit](SOMA-AUDIT-2026-08-08.md) - Existing performance and security audit.
+* [External audit](SOMA-AUDIT-2026-08-08.md) - **Histórico: foto anterior al ADR-009.** Existing performance and security audit.
 
 ## Doctrina transversal
 
@@ -63,19 +63,17 @@ repositorio.
 
 ## Planes de trabajo
 
-* [Plan de ingesta de facturas](PLAN-INGESTA-FACTURAS.md) - Pasos de implementación de la ingesta documental descrita en el ADR-006.
+* [Plan de ingesta de facturas](PLAN-INGESTA-FACTURAS.md) - **Obsoleto: describe el stack anterior al ADR-009.** Pasos de implementación de la ingesta documental descrita en el ADR-006.
 
 ## Diagramas
 
-Tres historias separadas, no una sola lámina que las mezcle. Cada `.drawio` es el
+Dos historias separadas, no una sola lámina que las mezcle. Cada `.drawio` es el
 maestro editable; el `.svg` de al lado es su render, y se ve directo en GitHub.
 
 | Diagrama | Responde a |
 | --- | --- |
-| [Despliegue](diagrams/soma-despliegue.svg) · [editable](diagrams/soma-despliegue.drawio) | Por dónde entra una petición y dónde termina |
 | [Capas de código](diagrams/soma-capas.svg) · [editable](diagrams/soma-capas.drawio) | Hacia dónde puede mirar cada capa, y qué regla lo verifica |
 | [Ingesta de facturas](diagrams/soma-ingesta-factura.svg) · [editable](diagrams/soma-ingesta-factura.drawio) | El viaje de un PDF, tal como funciona hoy |
-| [Frontend antes del refactor](diagrams/soma-frontend-antes.drawio) | Registro histórico del punto de partida |
 
 Se leen de **izquierda a derecha**: el dato entra por la izquierda y sale por la
 derecha. Lo que corta a todas las etapas —seguridad, observabilidad,

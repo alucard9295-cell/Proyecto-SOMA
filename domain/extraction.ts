@@ -32,7 +32,7 @@ export interface Palabra {
 export type Pagina = Palabra[];
 
 /** NIT del comprador. Si no aparece, la factura no es nuestra. */
-export const NIT_COMPRADOR = "901687820";
+const NIT_COMPRADOR = "901687820";
 
 /** CUFE: 96 hexadecimales. Clave determinista para deduplicar sin leer cifras. */
 const CUFE = /[0-9a-f]{96}/;
@@ -70,7 +70,7 @@ export interface FacturaExtraida {
 
 const revision = (motivo: string): Veredicto => ({ valida: false, motivos: [motivo], estado: "needs_review" });
 
-export const PERFILES: readonly PerfilEmisor[] = [
+const PERFILES: readonly PerfilEmisor[] = [
   {
     nit: "901649012",
     nombre: "FERRETERIA CONSTRUCTIVA Y DEPOSITO DE MATERIALES SAS",

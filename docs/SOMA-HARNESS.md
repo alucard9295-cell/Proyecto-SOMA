@@ -66,10 +66,8 @@ Creadas en `.claude/skills/`:
 | `soma-data-layer` | Tocar tablas, migraciones, repositorios o clasificación de datos |
 | `soma-docs-okf` | Escribir o reorganizar documentación del bundle |
 
-Existen además tres skills en `.opencode/skills/` (`soma-deployment`,
-`soma-frontend`, `graphify`) que **Claude Code no lee**: son del harness OpenCode.
-Su contenido de despliegue y frontend sigue siendo válido y conviene portarlo
-para no mantener dos verdades.
+En `.opencode/skills/` solo queda `graphify`, que usa OpenCode. Las lecciones
+van siempre en `.claude/skills/`, que OpenCode también lee.
 
 ## Orquestación de subagentes
 

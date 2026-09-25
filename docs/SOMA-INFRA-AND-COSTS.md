@@ -3,7 +3,7 @@ type: Runbook
 title: Topología de despliegue y costos de SOMA
 description: Servicios, puertos, comunicación entre componentes y coste mensual estimado para un solo usuario.
 tags: [soma, infra, deployment, costs, docker]
-status: draft
+status: deprecated
 generated: { by: claude-code/opus-5, at: 2026-08-24T00:00:00Z }
 sources:
   - id: adr-004

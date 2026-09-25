@@ -2,7 +2,7 @@
 // navegador. La identidad la pone Cloudflare Access en una cookie que el
 // navegador envia solo (ADR-010).
 
-export class ApiError extends Error {
+class ApiError extends Error {
   constructor(message, status) { super(message); this.status = status; }
 }
 

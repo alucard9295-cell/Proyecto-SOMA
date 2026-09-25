@@ -1,42 +1,42 @@
 # -*- coding: utf-8 -*-
 """Ingesta de facturas: como es HOY, no como la dibujo el ADR-006.
 
-Verificado en api/src/soma_api/jobs/ingest.py: procesa una carpeta local con
-pdfplumber y se invoca a mano. No hay bucket (no existe boto3 en pyproject) ni
-servicio cron en render.yaml. Lo del ADR-006 queda punteado, como destino.
+Verificado en src/lib/leer-factura.ts y worker/services/documents.ts: el PDF se
+lee en el navegador con pdf.js y el Worker revalida con el mismo dominio. R2
+(FILES) sigue comentado, y no hay cron. Lo del ADR-006 queda punteado.
 """
 from gen_lr import LR
 
 NARANJA, TEAL, ROJO, AZUL = '#E8590C', '#009688', '#DC2626', '#3A6EA5'
 
 d = LR("SOMA · ingesta de facturas (estado real)", [
-    ("EN TU MÁQUINA", NARANJA, [
-        dict(key='pdfs', label='Carpeta de PDFs', sub='facturas_db_pdf/', icon='folder'),
+    ("EN /admin", NARANJA, [
+        dict(key='pdfs', label='PDF de la factura', sub='se elige a mano', icon='folder'),
     ]),
-    ("PROCESO  ·  local, a mano", TEAL, [
-        dict(key='job', label='ingest.py', sub='pdfplumber  ·  20 por corrida', icon='pdf'),
+    ("NAVEGADOR  ·  pdf.js", TEAL, [
+        dict(key='job', label='domain/extraction', sub='posicional, sin OCR', icon='pdf'),
     ]),
-    ("VALIDACIÓN  ·  Python, no el LLM", ROJO, [
-        dict(key='chk', label='¿Los totales cuadran?', sub='idempotente por content_hash'),
+    ("WORKER  ·  revalida, no el LLM", ROJO, [
+        dict(key='chk', label='¿Los totales cuadran?', sub='mismas reglas de domain/'),
     ]),
-    ("SALIDA", AZUL, [
-        dict(key='csv', label='CSV / JSONL',   sub='filas listas para cargar', icon='doc'),
-        dict(key='rev', label='needs_review',  sub='con el motivo escrito', accent=ROJO),
+    ("ESTADO", AZUL, [
+        dict(key='csv', label='aprobada',      sub='entra al catálogo', icon='doc'),
+        dict(key='rev', label='needs_review',  sub='se aprueba o descarta', accent=ROJO),
     ]),
-    ("BASE", AZUL, [
+    ("D1", AZUL, [
         dict(key='db', label='facturas', sub='una sola fila por factura', icon='db'),
     ]),
 ])
 
-d.edge('pdfs',  'job', 'ruta como argumento')
-d.edge('job', 'chk', 'factura extraída')
+d.edge('pdfs',  'job', 'palabras con x, y')
+d.edge('job', 'chk', 'POST extracción')
 d.edge('chk', 'csv', 'sí', ports=(1, 0.5, 0, 0.3), color='#059669')
 d.edge('chk', 'rev', 'no', ports=(1, 0.5, 0, 0.7), color=ROJO)
-d.edge('csv', 'db', 'carga', ports=(1, 0.5, 0, 0.5))
+d.edge('csv', 'db', 'db.batch', ports=(1, 0.5, 0, 0.5))
 
 d.strip("LO QUE NO EXISTE TODAVÍA  ·  hoy nada de esto corre solo", [
-    dict(key='inbox', label='inbox/ en R2',      sub='origen canónico del ADR-006', icon='bucket', planned=True),
-    dict(key='cron',  label='Disparo automático', sub='ningún cron en render.yaml',   planned=True),
+    dict(key='inbox', label='PDF en R2',         sub='binding FILES, sin activar', icon='bucket', planned=True),
+    dict(key='cron',  label='Disparo automático', sub='sin cron: todo es manual',   planned=True),
     dict(key='mail',  label='Correo y Drive',     sub='adaptadores del ADR-006',      planned=True),
 ], color='#9CA3AF')
 

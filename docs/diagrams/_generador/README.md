@@ -8,11 +8,11 @@ anterior (12 tamaños distintos en 17 nodos y 6 pares solapados).
 
 ```powershell
 cd docs\diagrams\_generador
-python despliegue.py ; python capas.py ; python ingesta_factura.py
+python capas.py ; python ingesta_factura.py
 
 # render (requiere sesión de escritorio activa; ver skill soma-diagrams)
 & "C:\Program Files\draw.io\draw.io.exe" -x -f svg -b 12 `
-  -o ..\soma-despliegue.svg ..\soma-despliegue.drawio
+  -o ..\soma-capas.svg ..\soma-capas.drawio
 ```
 
 Los `style` de los iconos salen del índice local de draw.io

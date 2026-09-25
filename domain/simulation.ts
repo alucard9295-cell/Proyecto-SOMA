@@ -7,7 +7,7 @@
  */
 import { roundHalfEven } from "./money";
 
-export const REMODEL_RULES = {
+const REMODEL_RULES = {
   currency: "COP",
   cost_per_m2: { basic: 1_800_000, standard: 2_600_000, premium: 3_800_000 },
   percentages: {

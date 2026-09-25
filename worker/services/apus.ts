@@ -2,14 +2,11 @@
  * Casos de uso de insumos y APUs. Orquestan dominio y repositorios; no saben
  * de HTTP (lanzan HttpError) ni de SQL.
  */
-import { costApu, costingToJson, IVA_BASES, lineCost, type SupplyLine } from "../../domain/costing";
+import { APU_CATEGORIES, costApu, costingToJson, IVA_BASES, lineCost, SUPPLY_CATEGORIES, type SupplyLine } from "../../domain/costing";
 import { dec, money, toNumber, type Decimal } from "../../domain/money";
 import { invalid, notFound } from "../errors";
 import type { Repos } from "../repositories";
 import type { ApuDetail, ApuRow } from "../repositories/apus";
-
-export const SUPPLY_CATEGORIES = ["material", "mano_obra", "equipo", "transporte", "servicio_terceros"] as const;
-export const APU_CATEGORIES = ["excavaciones", "obra_gris", "acabados", "instalaciones"] as const;
 
 export interface ApuInput {
   nombre_partida: string;
@@ -57,7 +54,7 @@ const ratesOf = (row: Pick<ApuRow, "administracion_pct" | "imprevistos_pct" | "u
 });
 
 /** Vista de un APU a partir de filas ya cargadas: sin consultas, calcula en memoria. */
-export function apuView(row: ApuRow, details: ApuDetail[]) {
+function apuView(row: ApuRow, details: ApuDetail[]) {
   const lines: SupplyLine[] = [];
   const detalles = details.map((detail) => {
     const precio: Decimal = detail.precio_unitario ?? detail.precio_catalogo;

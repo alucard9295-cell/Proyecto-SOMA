@@ -2,6 +2,11 @@
 
 ## 2026-09-25
 
+- Limpieza tras el ADR-009: los diagramas de capas e ingesta se redibujan para
+  el Worker, y se borran el de despliegue (Render y Neon), sus logos y las
+  skills obsoletas de `.opencode/`. Los documentos del stack anterior quedan
+  marcados como obsoletos o históricos en el índice. Las categorías de insumo y
+  de APU pasan a `domain/costing.ts`, como fuente única para la UI y el Worker.
 - [ADR-010](SOMA-ADR-010-videos-en-r2.md), en borrador: videos subidos desde
   `/admin` a R2 por partes a través del Worker, sin secretos nuevos, y servidos
   con Range. Se descartan Stream (de pago) y las URLs prefirmadas. Espera a que

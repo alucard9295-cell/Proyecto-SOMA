@@ -3,7 +3,7 @@ type: Deployment Guide
 title: SOMA deployment guide — Render blueprint
 description: Pasos de despliegue de la web estática y del API FastAPI, ambos declarados en render.yaml.
 tags: [soma, deployment, render, neon, fastapi, docker]
-status: draft
+status: deprecated
 generated: { by: human:product-soma, at: 2026-08-11T00:00:00Z }
 sources:
   - id: architecture-guide

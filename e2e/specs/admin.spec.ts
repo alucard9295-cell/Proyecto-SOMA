@@ -19,3 +19,11 @@ for (const ruta of secciones) {
     expect(errores).toEqual([]);
   });
 }
+
+// Las categorias salen de domain/costing.ts, la misma lista que valida el Worker.
+test("los selectores usan las categorias del dominio", async ({ page }) => {
+  await page.goto("/admin/apus");
+  await expect(page.getByLabel("Categoría").locator("option")).toHaveText(["Excavaciones", "Obra gris", "Acabados", "Instalaciones"]);
+  await page.goto("/admin/insumos");
+  await expect(page.getByLabel("Filtrar por categoría").locator("option")).toHaveText(["Todas las categorías", "material", "mano_obra", "equipo", "transporte", "servicio_terceros"]);
+});

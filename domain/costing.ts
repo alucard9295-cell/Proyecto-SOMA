@@ -9,7 +9,9 @@ import { dec, money, sum, toNumber, type Decimal, type DecimalInput } from "./mo
 
 export const IVA_BASES = ["directo", "subtotal", "utilidad"] as const;
 export type IvaBase = (typeof IVA_BASES)[number];
-export const DEFAULT_IVA_BASE: IvaBase = "utilidad";
+export const SUPPLY_CATEGORIES = ["material", "mano_obra", "equipo", "transporte", "servicio_terceros"] as const;
+export const APU_CATEGORIES = ["excavaciones", "obra_gris", "acabados", "instalaciones"] as const;
+const DEFAULT_IVA_BASE: IvaBase = "utilidad";
 
 export interface SupplyLine {
   rendimiento: DecimalInput;
