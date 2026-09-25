@@ -33,6 +33,8 @@ export interface Perfil {
    * solo sirven para inflar el prompt y gastar neuronas compartidas.
    */
   publico?: boolean;
+  /** Texto si el turno queda vacio (p. ej. la unica llamada a tool era invalida y se descarto). */
+  respaldo?: string;
 }
 
 export interface LlamadaEntrada { id: string; function: { name: string; arguments: string } }
@@ -139,16 +141,17 @@ export function correr(modelo: LanguageModel, perfil: Perfil, corrida: Corrida, 
           // navegador corta antes porque no tiene execute.
           stopWhen: stepCountIs(4),
         });
-        if (resultado.text) {
-          const messageId = crypto.randomUUID();
-          emitir({ type: "TEXT_MESSAGE_START", messageId, role: "assistant" });
-          emitir({ type: "TEXT_MESSAGE_CONTENT", messageId, delta: resultado.text });
-          emitir({ type: "TEXT_MESSAGE_END", messageId });
-        }
         // Las del servidor ya se ejecutaron aqui; al navegador va una sola de las
         // suyas y valida: llama suele pedir varias en paralelo, con valores
         // inventados, y el cliente las ejecutaria todas.
         const llamada = resultado.toolCalls.find((t) => Object.hasOwn(perfil.herramientasCliente, t.toolName) && !(t.dynamic && t.invalid));
+        const texto = resultado.text || (llamada ? "" : perfil.respaldo ?? "");
+        if (texto) {
+          const messageId = crypto.randomUUID();
+          emitir({ type: "TEXT_MESSAGE_START", messageId, role: "assistant" });
+          emitir({ type: "TEXT_MESSAGE_CONTENT", messageId, delta: texto });
+          emitir({ type: "TEXT_MESSAGE_END", messageId });
+        }
         if (llamada) {
           emitir({ type: "TOOL_CALL_START", toolCallId: llamada.toolCallId, toolCallName: llamada.toolName });
           emitir({ type: "TOOL_CALL_ARGS", toolCallId: llamada.toolCallId, delta: JSON.stringify(llamada.input ?? {}) });

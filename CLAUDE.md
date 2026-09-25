@@ -100,7 +100,7 @@ El backend implementa: `/health`, `/ready`, `/api/admin/login|me|summary`,
 `soma-domain` (reglas de negocio y capas), `soma-data-layer` (migraciones y
 repositorios), `soma-frontend` (UI, textos, navegación), `soma-facturas`
 (extracción de facturas en PDF), `soma-docs-okf` (documentación),
-`soma-diagrams` (diagramas).
+`soma-diagrams` (diagramas), `soma-verificar` (servidores locales, pruebas del asesor, deploy).
 
 Las skills registran lecciones que ya costaron caro. Antes de reimplementar algo
 con otra librería o enfoque, **leer la skill correspondiente**: en la extracción

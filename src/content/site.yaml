@@ -145,6 +145,9 @@ ventas:
       gastos: Gastos / mes
     boton: Ver escenario ↗
     calculando: Calculando…
+    # Resumen que el asesor muestra en el chat tras llenar el simulador.
+    asesor_listo: Listo, calculé el escenario con esos datos.
+    asesor_error: "No pude calcular el escenario:"
     resultado_eyebrow: ESCENARIO PRELIMINAR
     kpis:
       inversion: Inversión total
@@ -197,7 +200,6 @@ asistente:
   cerrar: Cerrar asistente
   copiar: Copiar
   copiado: Copiado
-  simulador_lleno: Listo, llené el simulador con esos datos. Pulsa «Ver escenario» para ver el resultado.
   seccion_abierta: Listo, abrí la sección
 
 # Copiloto del control room: globo flotante en todas las secciones.

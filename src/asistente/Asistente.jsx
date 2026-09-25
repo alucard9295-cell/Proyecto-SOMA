@@ -67,16 +67,16 @@ function HerramientasAsesor() {
     name: "llenar_simulador",
     description: "Llena el simulador de la pagina con los datos del inmueble que dio el visitante. Solo los campos que el visitante menciono.",
     parameters: z.object({
-      area_m2: z.coerce.number().positive().max(100000).optional().describe("Area construida en m2"),
-      units: z.coerce.number().pipe(z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(6)])).optional().describe("Numero de unidades de vivienda"),
+      area_m2: z.coerce.number().positive().max(100000).describe("Area construida en m2"),
+      units: z.coerce.number().int().min(1).max(50).optional().describe("Numero de unidades de vivienda"),
       tier: z.enum(["basic", "standard", "premium"]).optional().describe("Calidad de obra"),
       acquisition_cost: z.coerce.number().min(0).optional().describe("Precio de compra en COP"),
       monthly_rent_per_unit: z.coerce.number().min(0).optional().describe("Renta mensual esperada por unidad en COP"),
+      monthly_operating_expenses: z.coerce.number().min(0).optional().describe("Gastos mensuales en COP"),
     }),
-    handler: async (datos) => {
-      window.dispatchEvent(new CustomEvent(SIMULADOR_EVENTO, { detail: datos }));
-      return copy.asistente.simulador_lleno;
-    },
+    // El simulador calcula (backend) y devuelve el resumen que se muestra en el
+    // chat: la ventana tapa el panel de resultados en pantallas medianas.
+    handler: (datos) => new Promise((listo) => window.dispatchEvent(new CustomEvent(SIMULADOR_EVENTO, { detail: { datos, listo } }))),
     ...CONFIRMAR,
   });
   useConfigureSuggestions({ suggestions: copy.asesor.sugerencias.map((s) => ({ title: s, message: s })) });

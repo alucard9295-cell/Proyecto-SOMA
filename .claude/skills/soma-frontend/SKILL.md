@@ -54,16 +54,39 @@ simulador de ventas y para el de admin; la segunda ganaba en silencio.
 Antes de crear una clase, `grep` el nombre. Prefija por sección
 (`.sales-result`, `.sales-kpis`).
 
-## El asesor
+## Asistentes (asesor y copiloto)
 
-Vive en un globo flotante abajo a la derecha, no en una sección de la página, y
-tiene botón de reiniciar conversación.
+CopilotKit v2 en un popup que carga `Lanzador.jsx` al primer clic. El contrato de
+cada tool (descripción y esquema que ve el modelo) vive en
+`worker/services/asistentes.ts`; el esquema de `Asistente.jsx` solo tipa el
+handler y **debe coincidir** con el del Worker.
 
-Si responde siempre lo mismo, no está roto: sin `AGENT_API_KEY` el agente usa el
-fallback determinista a propósito. Verifica el entorno antes de depurar el
-grafo.
+- **El asesor no dice "pulsa el botón".** `llenar_simulador` despacha
+  `SIMULADOR_EVENTO` con `{ datos, listo }`; el simulador llena, llama al backend
+  y resuelve `listo` con un resumen de cifras del backend, que es lo que muestra
+  el chat. El popup tapa el panel de resultados en pantallas medianas: el
+  resumen tiene que estar en el chat.
+- **Los esquemas no restringen de más.** El selector de unidades aceptaba
+  1/2/3/4/6 y el asesor no llenaba nada con "5 apartamentos"; el backend acepta
+  1-1000. Antes de poner un enum en una tool, mirar qué valida la ruta.
+- **Campos obligatorios en la tool** cuando el valor por defecto daría un cálculo
+  engañoso (el área). Una llamada inválida se descarta en el Worker; si el turno
+  queda vacío sale `perfil.respaldo`, que pide el dato.
+- **Montos en pesos completos** y calidad mapeada desde lenguaje natural: van en
+  el prompt del asesor; llama-3.3 no lo infiere solo.
+- **Temas del asesor**: si el prompt dice "solo hablas de X", rechaza sus
+  propias sugerencias (le pasó con "¿qué es un APU?").
+- Los enlaces del markdown pasan por `rehype-harden` (mismo origen y `wa.me`).
+
+## Formularios
+
+Un `input type="number"` con 900000000 no se lee: debajo va la cifra con
+`money()` (`.simulator-hint`).
 
 ## Verificar
+
+Ver la skill `soma-verificar`: qué servidor usar (el asesor necesita
+`wrangler dev`, no `vite preview`), migraciones locales y puertos.
 
 ```powershell
 npm run build     # obligatorio antes de dar por hecho un cambio de frontend

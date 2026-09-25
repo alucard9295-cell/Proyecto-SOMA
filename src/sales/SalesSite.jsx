@@ -6,29 +6,40 @@ import { money } from "../lib/format.js";
 import collectiveHousing from "../../assets/vivienda colectiva.jpg";
 import existingHouse from "../../assets/proyecto.webp";
 import droneVideo from "../../assets/la_idea_no_es_ver_el_dron_sino.mp4";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 
 function RemodelSimulator() {
   const c = copy.ventas.simulador;
   const [form, setForm] = useState({ area_m2: 120, units: 2, tier: "standard", acquisition_cost: 0, monthly_rent_per_unit: 0, monthly_operating_expenses: 0 });
   const [result, setResult] = useState(null); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
-  // El asesor llena el formulario; el calculo sigue siendo del backend al pulsar el boton.
+  const actual = useRef(form); actual.current = form;
+  // Devuelve el escenario o lanza: lo usan el boton y el asesor.
+  async function simular(valores) {
+    setBusy(true); setError("");
+    try {
+      const escenario = await request("/api/sales/simulation", { method: "POST", json: { ...valores, area_m2: Number(valores.area_m2), units: Number(valores.units), acquisition_cost: Number(valores.acquisition_cost), monthly_rent_per_unit: Number(valores.monthly_rent_per_unit), monthly_operating_expenses: Number(valores.monthly_operating_expenses) } });
+      setResult(escenario); return escenario;
+    } catch (requestError) { setResult(null); setError(requestError.message); throw requestError; } finally { setBusy(false); }
+  }
+  // El asesor llena el formulario y el backend calcula en el acto (invariante 7):
+  // al chat vuelve un resumen con las cifras del backend, no del modelo.
   useEffect(() => {
-    const llenar = (event) => { setForm((current) => ({ ...current, ...event.detail })); setResult(null); document.querySelector(".sales-simulator")?.scrollIntoView({ behavior: "smooth" }); };
+    const llenar = ({ detail: { datos, listo } }) => {
+      const valores = { ...actual.current, ...datos }; setForm(valores);
+      document.querySelector(".sales-simulator")?.scrollIntoView({ behavior: "smooth" });
+      simular(valores).then((e) => listo(`${c.asesor_listo} ${c.kpis.inversion}: ${money(e.investment.total)} · ${c.kpis.roi}: ${e.returns.annual_roi_pct == null ? "—" : `${e.returns.annual_roi_pct}%`}.`), (e) => listo(`${c.asesor_error} ${e.message}`));
+    };
     window.addEventListener(SIMULADOR_EVENTO, llenar);
     return () => window.removeEventListener(SIMULADOR_EVENTO, llenar);
   }, []);
   function change(event) { setForm((current) => ({ ...current, [event.target.name]: event.target.value })); }
-  async function calculate(event) {
-    event.preventDefault(); setBusy(true); setError("");
-    try {
-      setResult(await request("/api/sales/simulation", { method: "POST", json: { ...form, area_m2: Number(form.area_m2), units: Number(form.units), acquisition_cost: Number(form.acquisition_cost), monthly_rent_per_unit: Number(form.monthly_rent_per_unit), monthly_operating_expenses: Number(form.monthly_operating_expenses) } }));
-    } catch (requestError) { setError(requestError.message); } finally { setBusy(false); }
-  }
+  function calculate(event) { event.preventDefault(); simular(form).catch(() => {}); }
+  // Los importes grandes se leen mal en un input numerico: la cifra con puntos va debajo.
+  const importe = (name) => (Number(form[name]) > 0 ? <small className="simulator-hint">{money(form[name])}</small> : null);
   const roi = result?.returns?.annual_roi_pct == null ? "—" : `${result.returns.annual_roi_pct}%`;
   const payback = result?.returns?.payback_years == null ? "—" : `${result.returns.payback_years} años`;
-  return <section className="sales-simulator"><div className="simulator-copy"><span className="eyebrow">{c.eyebrow}</span><h2>{c.titulo_linea1}<br /><em>{c.titulo_enfasis}</em></h2><p>{c.descripcion}</p></div><form className="simulator-form" onSubmit={calculate}><label>{c.campos.area}<input name="area_m2" type="number" min="1" max="100000" value={form.area_m2} onChange={change} required /></label><label>{c.campos.unidades}<select name="units" value={form.units} onChange={change}><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="6">6</option></select></label><label>{c.campos.calidad}<select name="tier" value={form.tier} onChange={change}><option value="basic">Base</option><option value="standard">Estándar</option><option value="premium">Alta</option></select></label><label>{c.campos.compra}<input name="acquisition_cost" type="number" min="0" step="1000000" value={form.acquisition_cost} onChange={change} /></label><label>{c.campos.renta}<input name="monthly_rent_per_unit" type="number" min="0" step="50000" value={form.monthly_rent_per_unit} onChange={change} /></label><label>{c.campos.gastos}<input name="monthly_operating_expenses" type="number" min="0" step="50000" value={form.monthly_operating_expenses} onChange={change} /></label><button className="button button-dark" disabled={busy}>{busy ? c.calculando : c.boton}</button>{error && <small className="simulator-error" role="status">{error}</small>}</form><div className="sales-result"><span className="eyebrow">{c.resultado_eyebrow}</span><div className="sales-kpis"><div><small>{c.kpis.inversion}</small><strong>{result ? money(result.investment.total) : "—"}</strong></div><div><small>{c.kpis.flujo}</small><strong>{result ? money(result.income.net_annual) : "—"}</strong></div><div><small>{c.kpis.roi}</small><strong>{roi}</strong></div><div><small>{c.kpis.payback}</small><strong>{payback}</strong></div></div>{result?.assumptions?.note && <small className="simulator-note">{result.assumptions.note}</small>}</div></section>;
+  return <section className="sales-simulator"><div className="simulator-copy"><span className="eyebrow">{c.eyebrow}</span><h2>{c.titulo_linea1}<br /><em>{c.titulo_enfasis}</em></h2><p>{c.descripcion}</p></div><form className="simulator-form" onSubmit={calculate}><label>{c.campos.area}<input name="area_m2" type="number" min="1" max="100000" value={form.area_m2} onChange={change} required /></label><label>{c.campos.unidades}<input name="units" type="number" min="1" max="50" step="1" value={form.units} onChange={change} required /></label><label>{c.campos.calidad}<select name="tier" value={form.tier} onChange={change}><option value="basic">Base</option><option value="standard">Estándar</option><option value="premium">Alta</option></select></label><label>{c.campos.compra}<input name="acquisition_cost" type="number" min="0" step="1000000" value={form.acquisition_cost} onChange={change} />{importe("acquisition_cost")}</label><label>{c.campos.renta}<input name="monthly_rent_per_unit" type="number" min="0" step="50000" value={form.monthly_rent_per_unit} onChange={change} />{importe("monthly_rent_per_unit")}</label><label>{c.campos.gastos}<input name="monthly_operating_expenses" type="number" min="0" step="50000" value={form.monthly_operating_expenses} onChange={change} />{importe("monthly_operating_expenses")}</label><button className="button button-dark" disabled={busy}>{busy ? c.calculando : c.boton}</button>{error && <small className="simulator-error" role="status">{error}</small>}</form><div className="sales-result"><span className="eyebrow">{c.resultado_eyebrow}</span><div className="sales-kpis"><div><small>{c.kpis.inversion}</small><strong>{result ? money(result.investment.total) : "—"}</strong></div><div><small>{c.kpis.flujo}</small><strong>{result ? money(result.income.net_annual) : "—"}</strong></div><div><small>{c.kpis.roi}</small><strong>{roi}</strong></div><div><small>{c.kpis.payback}</small><strong>{payback}</strong></div></div>{result?.assumptions?.note && <small className="simulator-note">{result.assumptions.note}</small>}</div></section>;
 }
 
 function SalesPage() {

@@ -1,0 +1,69 @@
+---
+name: soma-verificar
+description: Usar al levantar SOMA en local, probar el asesor o el copiloto, desplegar a Cloudflare o comprobar producción. Dice qué servidor usar para cada prueba, qué preparar antes y qué acciones necesitan permiso del usuario, para no gastar llamadas descubriéndolo otra vez.
+---
+
+# Verificar SOMA (Worker en Cloudflare)
+
+Cada paso de esta lista ya costó al menos una llamada fallida. Seguir el orden.
+
+## Qué servidor para qué prueba
+
+| Prueba | Servidor | Por qué |
+| --- | --- | --- |
+| UI, simulador, rutas sin IA | `npx vite preview --port 4173` | Rápido, sirve `dist/` |
+| Asesor o copiloto (Workers AI) | `npx wrangler dev --port 8787 --ip 127.0.0.1` | `vite preview` **no** corre el binding `AI` remoto: responde `Binding AI needs to be run remotely` y la UI muestra "El asistente no está disponible" |
+| Lógica del Worker | `npx vitest run` | 122+ tests, proyectos node y workers |
+
+Ambos servidores sirven el build: **`npm run build` antes de arrancarlos**; si no, se prueba el código viejo.
+
+## Antes de arrancar
+
+1. **Migraciones locales.** La D1 local no se migra sola. Tras añadir un archivo en `migrations/`:
+   `npx wrangler d1 migrations apply soma --local`. Síntoma si falta: 500 con `no such table` en el log.
+2. **Puertos.** Lanzar el servidor con `run_in_background` y salida a `.tmp/<nombre>.log`. Para
+   pararlo, `TaskStop` **no basta en Windows** (mata `npx`, no el `node` hijo): liberar por PID con
+   `Get-NetTCPConnection -LocalPort <p> -State Listen` + `Stop-Process` (ver `windows-dev`).
+   Hacerlo *antes* de relanzar; `--strictPort` falla con "Port already in use" si no.
+3. **Esperar a que responda** con un bucle `curl` sobre `/`, no con `sleep` fijo.
+
+## Probar el asesor sin navegador
+
+El endpoint habla AG-UI; con `curl` se ve qué decide el modelo:
+
+```bash
+curl -s -N -X POST $U/api/sales/asesor -H 'content-type: application/json' \
+  -d '{"threadId":"t","runId":"r","messages":[{"id":"1","role":"user","content":"..."}],"tools":[{"name":"llenar_simulador"}],"context":[]}' \
+  | grep -E 'TOOL_CALL_ARGS|TEXT_MESSAGE_CONTENT'
+```
+
+`"tools":[{"name":...}]` es obligatorio: el Worker solo ofrece las tools que el cliente anuncia.
+Casos que ya fallaron y conviene repetir: unidades fuera de 1-4/6, "acabados buenos", mensaje
+sin área, "¿qué es un APU?" (una de las sugerencias del propio asesor).
+
+## Probar en navegador (flujo completo)
+
+`node tools/e2e/asesor.mjs <url> "<pregunta>" <salida.png>` con Chrome headless en el 9222
+(`--remote-debugging-port=9222 --user-data-dir=<scratchpad>`). Ver la captura con Read. El
+render de Streamdown es solo cliente: el SSR sale vacío, no sirve para verificar markdown.
+
+## Producción
+
+- URL: `https://soma.mireya-compromisos.workers.dev`.
+- Orden: `npm run build` → `npx wrangler d1 migrations apply soma --remote` (si hay migración
+  nueva) → `npx wrangler deploy`.
+- Humo: `/` y `/admin` 200; `/api/admin/*` 503 mientras Access no esté configurado (falla
+  cerrado, es correcto); `POST /api/sales/simulation` devuelve el escenario. `/api/health` no
+  existe en el Worker: 404 es esperado.
+- **Permisos.** El modo auto bloquea `--remote`, `deploy`, `secret put` y crear recursos de
+  cuenta. Con la regla `Bash(npx wrangler:*)` en `/permissions` pasan. Crear la organización de
+  Zero Trust (Access) la bloquea aunque vaya por el MCP de Cloudflare: la activa el usuario en
+  el dashboard. No reintentar por otra vía.
+- R2 no está habilitado en la cuenta (error 10042 al crear bucket): se activa en el dashboard.
+
+## Ruido conocido (no investigar)
+
+- CSP `script-src eval` desde `content-schema-*.js`: es un zod v3 que CopilotKit trae por dentro;
+  prueba `Function("")`, cae a modo sin eval y sigue. El `z.config({ jitless: true })` de
+  `Asistente.jsx` solo cubre nuestro zod.
+- "Default inspector port 9229 not available": otro proceso de node, inofensivo.

@@ -64,8 +64,9 @@ const LO_QUE_DICE_EL_SITIO = [v.hero.descripcion, v.hero.pasos.map((p: { nombre:
 export const perfilAsesor: Perfil = {
   publico: true,
   sistema: `Eres el asesor del sitio publico de SOMA, un estudio de arquitectura en Bogota que estudia inmuebles para vivienda multifamiliar: leer la casa existente, proyectar escenarios y decidir con criterio.
-Solo hablas de eso. Si te preguntan otra cosa, lo dices amablemente y vuelves al tema.
-Cuando el visitante describa un inmueble, usa llenar_simulador solo con los datos que dio (omite los que no menciono, no los pongas en cero) y pidele que pulse "Ver escenario": el calculo lo hace el simulador, tu no das ROI, precios ni rentabilidad.
+Hablas de eso y de lo que lo rodea: remodelacion y obra, presupuestos, analisis de precios unitarios (APU), calidades de acabado, arriendo y el proceso de trabajo de SOMA. Si te preguntan algo ajeno, lo dices amablemente y vuelves al tema. Una pregunta general (que es un APU, como se arma un presupuesto) se contesta con texto normal, en dos o tres frases: la herramienta es solo para llenar el simulador y no hace falta usarla para responder.
+Cuando el visitante describa un inmueble, usa llenar_simulador con los datos que dio (omite los que no menciono, no los pongas en cero). Montos en pesos completos: "900 millones" es 900000000. Calidad: acabados sencillos o economicos es basic; normales o buenos, standard; de lujo o alta gama, premium.
+El simulador calcula solo al recibir los datos y el visitante ve el resultado: tu no das ROI, precios ni rentabilidad. Si no dio el area, preguntasela antes de llenar.
 Nada de lo que digas es un avaluo ni una promesa de rentabilidad.
 ${REGLAS}
 
@@ -76,16 +77,19 @@ ${LO_QUE_DICE_EL_SITIO}`,
       description: "Llena el simulador de la pagina con los datos del inmueble. Solo los campos que el visitante menciono.",
       // coerce: llama manda los numeros como texto ("180") aunque el esquema diga number.
       inputSchema: z.object({
-        area_m2: z.coerce.number().positive().max(100000).optional().describe("Area construida en m2"),
-        units: z.coerce.number().pipe(z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(6)])).optional().describe("Numero de unidades de vivienda: 1, 2, 3, 4 o 6"),
+        // Obligatoria: sin area el simulador calcularia con el valor por defecto.
+        area_m2: z.coerce.number().positive().max(100000).describe("Area construida en m2"),
+        units: z.coerce.number().int().min(1).max(50).optional().describe("Numero de unidades de vivienda (apartamentos)"),
         tier: z.enum(["basic", "standard", "premium"]).optional().describe("Calidad de obra"),
         acquisition_cost: z.coerce.number().min(0).optional().describe("Precio de compra en COP"),
         monthly_rent_per_unit: z.coerce.number().min(0).optional().describe("Renta mensual esperada por unidad en COP"),
+        monthly_operating_expenses: z.coerce.number().min(0).optional().describe("Gastos mensuales de operacion del inmueble en COP"),
       }),
     }),
   },
   herramientasServidor: {},
   maxTokens: 400,
+  respaldo: "Cuéntame el área aproximada del inmueble en m² y cuántos apartamentos te gustaría tener, y calculo el escenario en el simulador.",
 };
 
 // Una respuesta del asesor gasta del orden de 80 neuronas (prompt ~1.5k tokens
