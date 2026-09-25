@@ -16,6 +16,9 @@ Cada paso de esta lista ya costó al menos una llamada fallida. Seguir el orden.
 | Lógica del Worker | `npx vitest run` | 122+ tests, proyectos node y workers |
 
 Ambos servidores sirven el build: **`npm run build` antes de arrancarlos**; si no, se prueba el código viejo.
+**Reconstruir con `wrangler dev` vivo lo rompe en Windows:** el build borra `dist/`, el watcher muere
+con `EPERM ... watch dist\client\assets\...` y el servidor responde 404 en `/`. Tras cada
+`npm run build`, parar el servidor por puerto y relanzarlo (no basta el recargado automático).
 
 ## Antes de arrancar
 
@@ -25,6 +28,9 @@ Ambos servidores sirven el build: **`npm run build` antes de arrancarlos**; si n
    pararlo, `TaskStop` **no basta en Windows** (mata `npx`, no el `node` hijo): liberar por PID con
    `Get-NetTCPConnection -LocalPort <p> -State Listen` + `Stop-Process` (ver `windows-dev`).
    Hacerlo *antes* de relanzar; `--strictPort` falla con "Port already in use" si no.
+   **Con `wrangler dev` el dueño del puerto es `workerd`, y el `node` de wrangler lo relanza** con otro
+   PID al matarlo: parar el padre (`(Get-CimInstance Win32_Process -Filter "ProcessId=$id").ParentProcessId`)
+   y después el `workerd`.
 3. **Esperar a que responda** con un bucle `curl` sobre `/`, no con `sleep` fijo.
 
 ## Probar el asesor sin navegador

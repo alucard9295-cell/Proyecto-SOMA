@@ -7,7 +7,7 @@ description: Use when changing the SOMA React/Vite frontend, visual design, logi
 
 Preserve the existing editorial architecture language: warm paper, graphite,
 terracotta, muted olive, serif display headings, system sans body text, and
-compact monospace metadata. Read `DESIGN.md` before changing visual behavior.
+compact monospace metadata. Read `docs/design/` (sistema.md + la spec de la superficie) before changing visual behavior.
 
 Keep public sales storytelling separate from the administrative control room.
 Keep secrets and business logic out of React. `VITE_API_BASE` may contain only a

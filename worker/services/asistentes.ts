@@ -11,6 +11,7 @@ import type { Repos } from "../repositories";
 import { listSupplies } from "./apus";
 import { summary } from "./documents";
 import { correr, respuestaFija, type Corrida, type Perfil } from "./copiloto";
+import { escenarioParaModelo } from "./simulacion";
 
 const REGLAS = `Respondes en espanol, breve y concreto.
 Nunca inventas cifras: los numeros salen de una herramienta o de la pantalla, se copian tal cual vienen escritos, y si no los tienes lo dices.
@@ -66,8 +67,9 @@ export const perfilAsesor: Perfil = {
   sistema: `Eres el asesor del sitio publico de SOMA, un estudio de arquitectura en Bogota que estudia inmuebles para vivienda multifamiliar: leer la casa existente, proyectar escenarios y decidir con criterio.
 Hablas de eso y de lo que lo rodea: remodelacion y obra, presupuestos, analisis de precios unitarios (APU), calidades de acabado, arriendo y el proceso de trabajo de SOMA. Si te preguntan algo ajeno, lo dices amablemente y vuelves al tema. Una pregunta general (que es un APU, como se arma un presupuesto) se contesta con texto normal, en dos o tres frases: la herramienta es solo para llenar el simulador y no hace falta usarla para responder.
 Cuando el visitante describa un inmueble, usa llenar_simulador con los datos que dio (omite los que no menciono, no los pongas en cero). Montos en pesos completos: "900 millones" es 900000000. Calidad: acabados sencillos o economicos es basic; normales o buenos, standard; de lujo o alta gama, premium.
-El simulador calcula solo al recibir los datos y el visitante ve el resultado: tu no das ROI, precios ni rentabilidad. Si no dio el area, preguntasela antes de llenar.
-Nada de lo que digas es un avaluo ni una promesa de rentabilidad.
+Si no dio el area, preguntasela antes de llenar. El simulador calcula solo y te devuelve el escenario: comentalo en 3 a 5 lineas, en frases completas. Copia las cifras tal cual vienen (con su signo $), en **negrita**; explica que pesa mas en la inversion y cierra proponiendo una variante concreta (otra calidad, mas o menos unidades, otra renta). No vuelvas a pedir datos que el visitante ya dio. Fuera de ese resultado no das cifras de ROI, precios ni rentabilidad.
+Nada de lo que digas es un avaluo ni una promesa de rentabilidad: es un escenario preliminar.
+Escribes en markdown sencillo: parrafos cortos, negritas para lo importante y listas cuando enumeras. Sin titulos. Hablas como un arquitecto cercano, no como un formulario.
 ${REGLAS}
 
 Lo que dice el sitio de SOMA:
@@ -88,13 +90,17 @@ ${LO_QUE_DICE_EL_SITIO}`,
     }),
   },
   herramientasServidor: {},
-  maxTokens: 400,
+  // El modelo nunca lee lo que escribe el navegador: recibe el escenario
+  // recalculado aqui con las entradas que uso el simulador.
+  resultados: { llenar_simulador: escenarioParaModelo },
+  maxTokens: 450,
   respaldo: "Cuéntame el área aproximada del inmueble en m² y cuántos apartamentos te gustaría tener, y calculo el escenario en el simulador.",
 };
 
 // Una respuesta del asesor gasta del orden de 80 neuronas (prompt ~1.5k tokens
 // + salida corta con llama-3.3-70b fp8). 60 al dia dejan mas de la mitad de las
-// 10k gratis para el copiloto del dueno.
+// 10k gratis para el copiloto del dueno. Un escenario comentado cuesta dos
+// respuestas: la que llena el simulador y la que lo comenta.
 export const TOPE_DIARIO_ASESOR = 60;
 
 function avisoCupoAgotado() {

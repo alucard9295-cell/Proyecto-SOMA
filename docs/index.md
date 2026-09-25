@@ -41,6 +41,13 @@ a SOMA, y aterriza en `~/.claude/CLAUDE.md` y en las skills globales de la
 máquina. Se mantiene en `C:\proyectos_ia\docs` a la espera de su propio
 repositorio.
 
+## Diseño
+
+* [Sistema visual](design/sistema.md) - Tokens, tipografía y guardrails comunes.
+* [Ventana de chat](design/chat.md) - Asesor y copiloto: anatomía, estados y tono.
+* [Portada pública](design/portada.md) - Secciones del sitio de clientes, contacto y mapa.
+* [Control room](design/admin.md) - Acceso, secciones y panel de consumo del plan gratis.
+
 ## Decisiones
 
 * [ADR-001 API boundary](SOMA-ADR-001-api-boundary.md) - Web, authentication and agent separation.

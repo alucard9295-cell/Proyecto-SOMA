@@ -77,6 +77,22 @@ handler y **debe coincidir** con el del Worker.
 - **Temas del asesor**: si el prompt dice "solo hablas de X", rechaza sus
   propias sugerencias (le pasó con "¿qué es un APU?").
 - Los enlaces del markdown pasan por `rehype-harden` (mismo origen y `wa.me`).
+- **El asesor comenta el escenario** (`followUp` por defecto en `llenar_simulador`). El
+  navegador devuelve `{ entradas, resumen }`; el Worker (`perfil.resultados` →
+  `escenarioParaModelo`) valida las entradas y **recalcula**: el modelo nunca lee texto del
+  cliente. Cada escenario comentado gasta dos respuestas del tope diario.
+
+### Estilo de la ventana (spec: `docs/design/chat.md`)
+
+- Personalizar por slots de `CopilotPopup`: `header={{ children: (partes) => ... }}` (recibe
+  `titleContent`, `closeButton`) y `messageView.cursor` (se ve mientras corre, antes del texto).
+  `useAgent().agent.isRunning` da el estado para la cabecera.
+- CSS por `[data-testid="copilot-*"]`, nunca por clases `cpk:*`. El CSS de CopilotKit carga
+  después (lazy), así que las reglas llevan `html` delante para ganar especificidad; los
+  colores se cambian redefiniendo sus variables (`--primary`, `--border`…) en
+  `html [data-copilotkit]`.
+- La bienvenida del popup es un `h1` dentro de `copilot-chat`: `copilot-welcome-screen` no
+  existe en el popup. Ante la duda, inspeccionar el ancestro por CDP antes de escribir el selector.
 
 ## Formularios
 

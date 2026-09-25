@@ -35,6 +35,12 @@ export interface Perfil {
   publico?: boolean;
   /** Texto si el turno queda vacio (p. ej. la unica llamada a tool era invalida y se descarto). */
   respaldo?: string;
+  /**
+   * En un perfil publico, arma en el servidor el resultado de una tool del
+   * navegador a partir de lo que devolvio el cliente (p. ej. recalculando). Sin
+   * entrada aqui, el modelo solo recibe "ok".
+   */
+  resultados?: Record<string, (contenidoCliente: string) => string>;
 }
 
 export interface LlamadaEntrada { id: string; function: { name: string; arguments: string } }
@@ -57,7 +63,7 @@ function argumentos(texto: string): unknown {
 }
 
 /** AG-UI -> mensajes del AI SDK. Los de sistema del cliente no pasan. */
-export function mensajesModelo(mensajes: MensajeEntrada[], publico = false): ModelMessage[] {
+export function mensajesModelo(mensajes: MensajeEntrada[], publico = false, resultados: Perfil["resultados"] = {}): ModelMessage[] {
   const nombres = new Map<string, string>();
   const salida: ModelMessage[] = [];
   for (const m of mensajes) {
@@ -72,7 +78,7 @@ export function mensajesModelo(mensajes: MensajeEntrada[], publico = false): Mod
     } else if (m.role === "tool") {
       // Un resultado sin su llamada previa no lo acepta ningun modelo: se omite.
       const toolName = nombres.get(m.toolCallId);
-      if (toolName) salida.push({ role: "tool", content: [{ type: "tool-result", toolCallId: m.toolCallId, toolName, output: { type: "text", value: publico ? "ok" : m.content } }] });
+      if (toolName) salida.push({ role: "tool", content: [{ type: "tool-result", toolCallId: m.toolCallId, toolName, output: { type: "text", value: publico ? (resultados[toolName]?.(m.content) ?? "ok") : m.content } }] });
     }
   }
   return salida;
@@ -132,7 +138,7 @@ export function correr(modelo: LanguageModel, perfil: Perfil, corrida: Corrida, 
         const resultado = await generateText({
           model: modelo,
           system: sistema(perfil, corrida.context),
-          messages: mensajesModelo(corrida.messages, perfil.publico),
+          messages: mensajesModelo(corrida.messages, perfil.publico, perfil.resultados),
           // Tras el resultado de una tool del navegador toca responder: si se le
           // vuelve a ofrecer, llama repite la misma llamada y gasta otra corrida.
           tools: herramientas(perfil, corrida.messages.at(-1)?.role === "tool" ? [] : corrida.tools),

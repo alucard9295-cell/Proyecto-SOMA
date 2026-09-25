@@ -14,21 +14,23 @@ function RemodelSimulator() {
   const [form, setForm] = useState({ area_m2: 120, units: 2, tier: "standard", acquisition_cost: 0, monthly_rent_per_unit: 0, monthly_operating_expenses: 0 });
   const [result, setResult] = useState(null); const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   const actual = useRef(form); actual.current = form;
+  const entrada = (valores) => ({ ...valores, area_m2: Number(valores.area_m2), units: Number(valores.units), acquisition_cost: Number(valores.acquisition_cost), monthly_rent_per_unit: Number(valores.monthly_rent_per_unit), monthly_operating_expenses: Number(valores.monthly_operating_expenses) });
   // Devuelve el escenario o lanza: lo usan el boton y el asesor.
   async function simular(valores) {
     setBusy(true); setError("");
     try {
-      const escenario = await request("/api/sales/simulation", { method: "POST", json: { ...valores, area_m2: Number(valores.area_m2), units: Number(valores.units), acquisition_cost: Number(valores.acquisition_cost), monthly_rent_per_unit: Number(valores.monthly_rent_per_unit), monthly_operating_expenses: Number(valores.monthly_operating_expenses) } });
+      const escenario = await request("/api/sales/simulation", { method: "POST", json: entrada(valores) });
       setResult(escenario); return escenario;
     } catch (requestError) { setResult(null); setError(requestError.message); throw requestError; } finally { setBusy(false); }
   }
-  // El asesor llena el formulario y el backend calcula en el acto (invariante 7):
-  // al chat vuelve un resumen con las cifras del backend, no del modelo.
+  // El asesor llena el formulario y el backend calcula en el acto (invariante 7).
+  // Al chat vuelven las entradas usadas (el Worker recalcula con ellas lo que
+  // comenta el modelo) y un resumen con las cifras del backend para la nota.
   useEffect(() => {
     const llenar = ({ detail: { datos, listo } }) => {
       const valores = { ...actual.current, ...datos }; setForm(valores);
       document.querySelector(".sales-simulator")?.scrollIntoView({ behavior: "smooth" });
-      simular(valores).then((e) => listo(`${c.asesor_listo} ${c.kpis.inversion}: ${money(e.investment.total)} · ${c.kpis.roi}: ${e.returns.annual_roi_pct == null ? "—" : `${e.returns.annual_roi_pct}%`}.`), (e) => listo(`${c.asesor_error} ${e.message}`));
+      simular(valores).then((e) => listo(JSON.stringify({ entradas: entrada(valores), resumen: `${c.asesor_listo} ${c.kpis.inversion}: ${money(e.investment.total)} · ${c.kpis.roi}: ${e.returns.annual_roi_pct == null ? "—" : `${e.returns.annual_roi_pct}%`}` })), (e) => listo(JSON.stringify({ resumen: `${c.asesor_error} ${e.message}` })));
     };
     window.addEventListener(SIMULADOR_EVENTO, llenar);
     return () => window.removeEventListener(SIMULADOR_EVENTO, llenar);

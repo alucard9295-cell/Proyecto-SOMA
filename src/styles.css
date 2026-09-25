@@ -488,4 +488,42 @@ h3 { margin: 0 0 8px; line-height: 1.1; }
 .asistente-lanzador { position: fixed; right: 24px; bottom: 24px; z-index: 40; box-shadow: 0 6px 20px rgba(29, 29, 26, .18); }
 /* CopilotKit dibuja siempre el boton de adjuntos, deshabilitado si no hay menu: no se usa. */
 [data-testid="copilot-add-menu-button"]:disabled { display: none; }
-.asistente-nota { margin: 4px 0; color: #5f5a52; font-size: 14px; }
+.asistente-nota { margin: 6px 0; padding: 8px 12px; border-left: 2px solid #c76649; background: #f7f5ef; color: #5f5a52; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* Ventana de chat: spec en docs/design/chat.md. Los selectores van por
+   data-testid (contrato estable de CopilotKit) y "html" sube la especificidad
+   sobre su CSS, que se carga despues al abrir el chat. */
+html [data-copilotkit] {
+  --background: #fffefa; --foreground: #1d1d1a; --card: #fffefa; --popover: #fffefa;
+  --primary: #1d1d1a; --primary-foreground: #f7f5ef; --secondary: #f7f5ef; --secondary-foreground: #1d1d1a;
+  --muted: #ebe8df; --muted-foreground: #77756b; --accent: #f7f5ef; --accent-foreground: #1d1d1a;
+  --border: #dedbd1; --input: #dedbd1; --ring: #c76649; --radius: 14px;
+}
+html [data-testid="copilot-popup"] {
+  --copilot-popup-width: 400px; --copilot-popup-height: min(640px, calc(100vh - 120px));
+  border: 1px solid #dedbd1; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 24px 60px rgba(29, 29, 26, .18), 0 2px 6px rgba(29, 29, 26, .08);
+}
+.chat-cabecera { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: #1d1d1a; color: #f7f5ef; }
+.chat-cabecera [data-testid="copilot-header-title"] { color: #f7f5ef; font: 400 17px/1.2 Georgia, "Times New Roman", serif; letter-spacing: 0; }
+.chat-cabecera button { color: #f7f5ef; }
+.chat-cabecera button:hover { background: rgba(247, 245, 239, .12); color: #fff; }
+.chat-titulo { flex: 1; display: grid; gap: 4px; }
+.chat-titulo small { color: #b9b5a8; font: 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; letter-spacing: .06em; }
+.chat-estado { position: relative; width: 9px; height: 9px; flex: none; border-radius: 50%; background: #8fa383; box-shadow: 0 0 0 0 rgba(143, 163, 131, .7); animation: chat-latido 2.4s ease-out infinite; }
+.chat-estado-ocupado { background: #e08a6d; animation-duration: 1.1s; }
+@keyframes chat-latido { 0% { box-shadow: 0 0 0 0 rgba(143, 163, 131, .7); } 70% { box-shadow: 0 0 0 8px rgba(143, 163, 131, 0); } 100% { box-shadow: 0 0 0 0 rgba(143, 163, 131, 0); } }
+/* La bienvenida del popup es un h1 suelto dentro de copilot-chat (no usa copilot-welcome-screen). */
+html [data-testid="copilot-chat"] h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; color: #1d1d1a; }
+html [data-testid="copilot-assistant-message"] { text-align: left; font-size: 15px; line-height: 1.55; color: #1d1d1a; }
+html [data-testid="copilot-assistant-message"] p { margin: 0 0 .6em; }
+html [data-testid="copilot-assistant-message"] strong { font-weight: 650; }
+html [data-testid="copilot-assistant-message"] ul, html [data-testid="copilot-assistant-message"] ol { margin: 0 0 .6em; padding-left: 1.2em; }
+html [data-testid="copilot-user-message"] > div:first-child { background: #1d1d1a; color: #f7f5ef; border-radius: 16px 16px 4px 16px; font-size: 15px; line-height: 1.45; }
+html [data-testid="copilot-suggestion"] { border: 1px solid #dedbd1; background: #fffefa; color: #77756b; opacity: .72; font-size: 13px; transition: opacity .15s, border-color .15s, color .15s; }
+html [data-testid="copilot-suggestion"]:hover, html [data-testid="copilot-suggestion"]:focus-visible { opacity: 1; color: #1d1d1a; border-color: #c76649; }
+html [data-testid="copilot-chat-input"] { border: 1px solid #dedbd1; background: #fffefa; }
+html [data-testid="copilot-chat-input"]:focus-within { border-color: #c76649; }
+.chat-pensando { display: flex; align-items: center; gap: 8px; color: #77756b; font-size: 13px; }
+.chat-spinner { width: 14px; height: 14px; border: 2px solid #ebe8df; border-top-color: #c76649; border-radius: 50%; animation: chat-giro .8s linear infinite; }
+@keyframes chat-giro { to { transform: rotate(360deg); } }

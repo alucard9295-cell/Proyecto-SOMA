@@ -25,7 +25,7 @@ panel. The FastAPI control plane in `api/` remains the only backend boundary.
 - Keep business secrets in FastAPI, never in React.
 - Treat the landing page as commercial and the panel as operational.
 - Preserve accessible labels, keyboard actions and reduced-motion behavior.
-- Use the design rules in `DESIGN.md` before adding components.
+- Use the design rules in `docs/design/` (sistema.md + la spec de la superficie) before adding components.
 
 ## graphify
 

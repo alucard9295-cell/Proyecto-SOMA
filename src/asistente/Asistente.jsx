@@ -6,7 +6,7 @@
 // en produccion; la alternativa "selfManagedAgents" es del plan Enterprise.
 // Versiones fijadas en package.json por eso mismo.
 import { HttpAgent } from "@ag-ui/client";
-import { CopilotKitProvider, CopilotPopup, useAgentContext, useConfigureSuggestions, useFrontendTool } from "@copilotkit/react-core/v2";
+import { CopilotKitProvider, CopilotPopup, useAgent, useAgentContext, useConfigureSuggestions, useFrontendTool } from "@copilotkit/react-core/v2";
 import "@copilotkit/react-core/v2/styles.css";
 import { useState } from "react";
 import { BlockPolicy, harden } from "rehype-harden";
@@ -48,19 +48,23 @@ const SOLO_ESTE_ORIGEN = {
   },
 };
 
-// Tras una tool del navegador no se vuelve a llamar al modelo: la confirmacion
-// es fija. Ahorra una corrida por accion y evita que llama, ya sin la tool a
-// mano, conteste que no puede hacer lo que acaba de hacer.
+// Tras ir_a no se vuelve a llamar al modelo: la confirmacion es fija. Ahorra
+// una corrida por accion y evita que llama, ya sin la tool a mano, conteste que
+// no puede hacer lo que acaba de hacer.
 const CONFIRMAR = {
   followUp: false,
   render: ({ result }) => (result ? <p className="asistente-nota">{result}</p> : null),
 };
 
+// El simulador devuelve JSON { entradas, resumen }: las entradas son para el
+// Worker (recalcula lo que comenta el modelo), el resumen es la nota del chat.
+const resumenDe = (result) => { try { return JSON.parse(result).resumen; } catch { return result; } };
+
 function HerramientasAsesor() {
   // Lo que dice el sitio lo pone el Worker en el prompt: el asesor publico
   // ignora el contexto que mande el navegador.
-  // El asesor no calcula: deja el formulario listo y la cifra la da el backend
-  // cuando el visitante pulsa el boton (invariante 7).
+  // El asesor no calcula: llena el formulario y la cifra la da el backend
+  // (invariante 7).
   // El contrato que ve el modelo esta en worker/services/asistentes.ts y el
   // Worker ya valida la llamada; este esquema solo tipa el handler.
   useFrontendTool({
@@ -74,10 +78,11 @@ function HerramientasAsesor() {
       monthly_rent_per_unit: z.coerce.number().min(0).optional().describe("Renta mensual esperada por unidad en COP"),
       monthly_operating_expenses: z.coerce.number().min(0).optional().describe("Gastos mensuales en COP"),
     }),
-    // El simulador calcula (backend) y devuelve el resumen que se muestra en el
-    // chat: la ventana tapa el panel de resultados en pantallas medianas.
+    // El simulador calcula (backend) y la nota con las cifras queda en el chat:
+    // la ventana tapa el panel de resultados en pantallas medianas. Despues el
+    // modelo corre otra vez y comenta el escenario (followUp por defecto).
     handler: (datos) => new Promise((listo) => window.dispatchEvent(new CustomEvent(SIMULADOR_EVENTO, { detail: { datos, listo } }))),
-    ...CONFIRMAR,
+    render: ({ result }) => (result ? <p className="asistente-nota">{resumenDe(result)}</p> : null),
   });
   useConfigureSuggestions({ suggestions: copy.asesor.sugerencias.map((s) => ({ title: s, message: s })) });
   return null;
@@ -99,6 +104,22 @@ function HerramientasCopiloto() {
   return null;
 }
 
+// Cabecera propia (slot header de CopilotPopup): estado en linea que pulsa y
+// pasa a "escribiendo" mientras corre el agente. Diseno en docs/design/chat.md.
+function CabeceraChat({ titleContent, closeButton, tipo }) {
+  const { agent } = useAgent();
+  const c = copy[tipo]; const comun = copy.asistente;
+  const ocupado = agent?.isRunning;
+  return <header className="chat-cabecera" data-testid="copilot-modal-header">
+    <span className={`chat-estado${ocupado ? " chat-estado-ocupado" : ""}`} aria-hidden="true" />
+    <div className="chat-titulo">{titleContent}<small role="status">{ocupado ? comun.estado_ocupado : comun.estado_activo}{c.subtitulo ? ` · ${c.subtitulo}` : ""}</small></div>
+    {closeButton}
+  </header>;
+}
+
+// Slot cursor: se ve mientras el agente piensa y aun no escribe.
+const CursorChat = () => <div className="chat-pensando" data-testid="copilot-loading-cursor"><span className="chat-spinner" aria-hidden="true" />{copy.asistente.pensando}</div>;
+
 export default function Asistente({ tipo }) {
   const c = copy[tipo];
   // Un agente por montaje (guarda el hilo). Se registra como "default" porque es
@@ -107,7 +128,9 @@ export default function Asistente({ tipo }) {
   const comun = copy.asistente;
   return <CopilotKitProvider agents__unsafe_dev_only={agentes} enableInspector={false}>
     {tipo === "asesor" ? <HerramientasAsesor /> : <HerramientasCopiloto />}
-    <CopilotPopup defaultOpen messageView={{ assistantMessage: SOLO_ESTE_ORIGEN }} labels={{
+    <CopilotPopup defaultOpen className="chat-soma"
+      header={{ children: (partes) => <CabeceraChat {...partes} tipo={tipo} /> }}
+      messageView={{ assistantMessage: SOLO_ESTE_ORIGEN, cursor: CursorChat }} labels={{
       modalHeaderTitle: c.titulo, chatInputPlaceholder: c.placeholder, welcomeMessageText: c.bienvenida,
       chatDisclaimerText: comun.aviso, chatToggleOpenLabel: comun.abrir, chatToggleCloseLabel: comun.cerrar,
       assistantMessageToolbarCopyMessageLabel: comun.copiar, assistantMessageToolbarCopyCodeLabel: comun.copiar, assistantMessageToolbarCopyCodeCopiedLabel: comun.copiado,

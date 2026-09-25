@@ -1,3 +1,11 @@
+---
+okf_version: "0.2"
+type: Design Spec
+title: Sistema visual de SOMA
+description: Tokens, tipografía, componentes y guardrails comunes a todas las superficies.
+tags: [soma, design, tokens]
+---
+
 # SOMA React Design System
 
 ## Visual direction
@@ -37,3 +45,9 @@ well-edited architecture dossier rather than a generic SaaS dashboard.
 - Do not promise rent, ROI or permits; use potential and show assumptions.
 - Keep commercial storytelling separate from administrative operations.
 - Never expose API keys in React or `VITE_*` variables.
+
+## Specs por superficie
+
+- [Ventana de chat](chat.md)
+- [Portada pública](portada.md)
+- [Control room](admin.md)

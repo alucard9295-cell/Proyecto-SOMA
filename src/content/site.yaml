@@ -145,8 +145,8 @@ ventas:
       gastos: Gastos / mes
     boton: Ver escenario ↗
     calculando: Calculando…
-    # Resumen que el asesor muestra en el chat tras llenar el simulador.
-    asesor_listo: Listo, calculé el escenario con esos datos.
+    # Nota breve en el chat tras llenar el simulador (luego el asesor la comenta).
+    asesor_listo: Simulador actualizado ·
     asesor_error: "No pude calcular el escenario:"
     resultado_eyebrow: ESCENARIO PRELIMINAR
     kpis:
@@ -169,13 +169,8 @@ ventas:
 
 # El asesor vive en un globo flotante, no en una sección de la página.
 asesor:
-  burbuja_abrir: Hablar con el asesor
-  burbuja_cerrar: Cerrar
-  reiniciar: Reiniciar la conversación
   titulo: Asesor SOMA
-  subtitulo: Orientación preliminar
-  estado_activo: en línea
-  estado_ocupado: analizando
+  subtitulo: orientación preliminar
   bienvenida: >-
     Soy el asesor de SOMA. Cuéntame qué inmueble tienes o qué te gustaría
     estudiar.
@@ -184,8 +179,6 @@ asesor:
     - ¿Cómo se arma el presupuesto de una remodelación?
     - ¿Qué es un APU y para qué sirve?
   placeholder: Escribe tu pregunta...
-  enviar: Enviar ↗
-  error_prefijo: "No pude completar la asesoría:"
   # Cuando se agota el cupo diario del asesor (lo escribe el Worker).
   agotado: >-
     Por hoy ya respondí todas las consultas que puedo. Escríbenos por WhatsApp
@@ -201,10 +194,14 @@ asistente:
   copiar: Copiar
   copiado: Copiado
   seccion_abierta: Listo, abrí la sección
+  estado_activo: en línea
+  estado_ocupado: escribiendo…
+  pensando: Pensando…
 
 # Copiloto del control room: globo flotante en todas las secciones.
 copiloto:
   titulo: Copiloto SOMA
+  subtitulo: control room
   bienvenida: >-
     Puedo buscar insumos y precios, resumir cómo va el negocio o llevarte a la
     sección que necesites.
