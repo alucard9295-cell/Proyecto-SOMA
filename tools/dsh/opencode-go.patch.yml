@@ -1,0 +1,24 @@
+# OpenCode Go (suscripción de $10/mes) como ruta de modelo. Go exige la cabecera
+# x-opencode-session (sin ella: MissingSessionID) y región Global para DeepSeek.
+# La clave llega por entorno (OPENCODE_API_KEY, reenviada por docker-compose).
+- id: llm-pi-ai
+  config:
+    providers:
+      opencode-go:
+        displayName: OpenCode Go
+        apiKeyEnv: OPENCODE_API_KEY
+        api: openai-completions
+        baseURL: https://opencode.ai/zen/go/v1
+        headers:
+          x-opencode-session: dsh-soma
+        compat:
+          thinkingFormat: deepseek
+        defaultContextWindow: 128000
+        models:
+          - id: deepseek-v4-flash
+          - id: deepseek-v4-pro
+
+- id: agent-default-model
+  config:
+    provider: opencode-go
+    model: deepseek-v4-flash
