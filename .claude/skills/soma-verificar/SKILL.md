@@ -79,7 +79,10 @@ render de Streamdown es solo cliente: el SSR sale vacío, no sirve para verifica
 - **Permisos.** El modo auto bloquea `--remote`, `deploy`, `secret put` y crear recursos de
   cuenta. Con la regla `Bash(npx wrangler:*)` en `/permissions` pasan. Crear la organización de
   Zero Trust (Access) la bloquea aunque vaya por el MCP de Cloudflare: la activa el usuario en
-  el dashboard. No reintentar por otra vía.
+  el dashboard. No reintentar por otra vía. **El bloqueo se extiende:** tras un `deploy` denegado,
+  el clasificador denegó también `opencode --version` con la misma razón ("Production Deploy").
+  Justo después de una denegación, no lanzar comandos de CLI externas; pedirlos al usuario con
+  `! <comando>`, o hacerlos más tarde.
 - **Access por el MCP: solo lectura.** Hay dos errores distintos:
   - `9999: access.api.error.not_enabled`: Zero Trust aún no se activó en la cuenta.
     Lo activa el usuario.
