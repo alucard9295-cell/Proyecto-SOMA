@@ -220,17 +220,26 @@ suspender la cuenta.
 
 # Puesta en marcha
 
+Actualizado el 2026-09-25 para el stack de Cloudflare
+([ADR-009](SOMA-ADR-009-cloudflare.md)). Las secciones anteriores hablan de
+`api/`, `pytest` y login propio, que ya no existen. Los casos de uso siguen
+valiendo como intención, y CU-02, CU-03 y CU-04 los cubre hoy Cloudflare Access.
+
+`e2e/` existe, con su propio `package.json`, y corre en la imagen oficial de
+Playwright:
+
 ```powershell
-mkdir e2e; cd e2e
-npm init -y
-npm i -D @playwright/test @axe-core/playwright
-npx playwright install chromium
-npx playwright test
+npm run build
+npx wrangler dev --port 8787 --ip 127.0.0.1
+docker compose --profile e2e run --rm e2e
 ```
 
-`playwright.config.ts` levanta API y web con `webServer`, apuntando el API a una
-base temporal para no tocar datos reales.
-
-**Orden de implementación:** CU-02 y CU-06 primero. CU-02 blinda la regresión que
-ya ocurrió; CU-06 documenta en forma ejecutable la duplicación que hay que
-eliminar.
+- No levanta servidores: prueba el `wrangler dev` del host, y la D1 local es la
+  base de prueba.
+- Guarda video y captura de cada prueba, más el informe HTML, en
+  `e2e/resultados/` (ignorado por git).
+- Implementados: CU-01 (el simulador calcula en pesos), el contacto con mapa de
+  la portada y la carga sin errores de cinco secciones de `/admin`, en
+  escritorio y móvil.
+- Siguiente: CU-06 (crear un APU y que el precio no cambie al guardar) y CU-08
+  (el asesor), este último con cuidado del tope diario de Workers AI.

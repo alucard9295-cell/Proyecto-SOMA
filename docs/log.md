@@ -2,6 +2,12 @@
 
 ## 2026-09-25
 
+- [ADR-010](SOMA-ADR-010-videos-en-r2.md), en borrador: videos subidos desde
+  `/admin` a R2 por partes a través del Worker, sin secretos nuevos, y servidos
+  con Range. Se descartan Stream (de pago) y las URLs prefirmadas. Espera a que
+  se active R2 y a que la dueña decida si los videos son públicos.
+- Playwright en Docker: servicio `e2e` del compose (perfil `e2e`) contra
+  `wrangler dev`. 14 pruebas en verde, con video y captura de cada una.
 - [ADR-009](SOMA-ADR-009-cloudflare.md): **todo SOMA en Cloudflare**, un Worker
   con Hono, D1, Access y Workers AI, a $0 en el plan gratis. Registra la
   migración del commit `e5002bc`, que la documentación no reflejaba. Sustituye al

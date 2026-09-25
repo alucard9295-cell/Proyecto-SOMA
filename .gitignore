@@ -33,3 +33,7 @@ graphify-out/
 # Scratch and real invoice data (never commit: contains supplier data)
 .tmp/
 tools/baseline/*.json
+
+# Playwright (e2e/): dependencias y videos/capturas de cada corrida
+e2e/node_modules/
+e2e/resultados/

@@ -93,16 +93,20 @@ dashboard.
 
 - `docker compose up -d dsh` levanta el harness de DeepSeek aislado sobre el
   repo. La clave va en `.env`; la plantilla está en `.env.example`.
-- `tools/e2e/` tiene scripts de navegador para el asesor y las secciones.
+- `docker compose --profile e2e run --rm e2e` corre Playwright (en `e2e/`)
+  contra el `wrangler dev` del host. Deja video y captura de cada prueba en
+  `e2e/resultados/`.
+- `tools/e2e/` tiene scripts sueltos de CDP para el asesor y las secciones.
 - Las skills del proyecto están en `.claude/skills/`, y la documentación viva
   en [`docs/index.md`](docs/index.md).
 
 ## Próximos pasos
 
-1. **Playwright en Docker**: pruebas E2E reproducibles, con capturas y videos,
-   contra `wrangler dev`.
-2. **Subida de videos a R2**: pide activar R2 y escribir un ADR para las
-   subidas grandes.
+1. **Activar R2** en el dashboard (lo hace la dueña). Habilita la carga de
+   facturas y los videos ([ADR-010](docs/SOMA-ADR-010-videos-en-r2.md), en
+   borrador).
+2. **Más E2E**: CU-06 (APU) y CU-08 (asesor). Ver
+   [el plan](docs/SOMA-E2E-TEST-PLAN.md).
 3. **Verificar Access en `/admin`** con Google y OTP en producción.
 
 ## Seguridad

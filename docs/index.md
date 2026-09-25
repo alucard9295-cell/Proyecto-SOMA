@@ -59,6 +59,7 @@ repositorio.
 * [ADR-007 frontera de la documentación](SOMA-ADR-007-frontera-de-la-documentacion.md) - Por qué el bundle OKF vive en el repositorio y por qué la doctrina transversal y la infraestructura de memoria se quedan fuera.
 * [ADR-008 stack de despliegue](SOMA-ADR-008-stack-de-despliegue.md) - **Sustituido por el ADR-009.** Render para web y API, Neon para datos; por qué se descartan Vercel y Railway.
 * [ADR-009 todo en Cloudflare](SOMA-ADR-009-cloudflare.md) - Un Worker con Hono, D1, Access y Workers AI en el plan gratis; el stack vigente.
+* [ADR-010 videos en R2](SOMA-ADR-010-videos-en-r2.md) - Propuesta: subida multiparte por el Worker desde /admin y reproducción con Range; espera activar R2.
 
 ## Planes de trabajo
 

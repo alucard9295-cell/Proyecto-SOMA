@@ -68,6 +68,27 @@ móvil) e imprime los errores de consola, incluidas violaciones de CSP.
 (`--remote-debugging-port=9222 --user-data-dir=<scratchpad>`). Ver la captura con Read. El
 render de Streamdown es solo cliente: el SSR sale vacío, no sirve para verificar markdown.
 
+## Suite E2E con Playwright en Docker
+
+`e2e/` tiene su propio `package.json` y `@playwright/test` fijado a la misma
+versión que la imagen del servicio `e2e` del compose (hoy 1.63.0). Para subir
+la versión, se cambian las dos a la vez.
+
+1. `npm run build` y `npx wrangler dev --port 8787 --ip 127.0.0.1`. Con el
+   `ENVIRONMENT=development` de `.dev.vars`, `/admin` entra sin Access.
+2. `docker compose --profile e2e run --rm e2e`. El servicio solo existe con
+   `--profile e2e`, así que `docker compose up` no lo arranca.
+3. Los resultados quedan en `e2e/resultados/` (ignorado): video y captura de
+   cada prueba, en escritorio y móvil, más el informe HTML en `informe/index.html`.
+
+- El contenedor llega al `wrangler dev` del host por `host.docker.internal`,
+  aunque esté atado a 127.0.0.1 (verificado con Docker Desktop, 2026-09-25). No
+  hace falta `--ip 0.0.0.0`, que expondría el admin de desarrollo a la red.
+- La primera corrida descarga la imagen (unos 2 GB). Hacerla con
+  `run_in_background`.
+- No apuntar `E2E_BASE_URL` a producción: `/admin` está detrás de Access y las
+  pruebas del asesor gastarían cuota de Workers AI.
+
 ## Producción
 
 - URL: `https://soma.mireya-compromisos.workers.dev`.

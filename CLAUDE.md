@@ -104,6 +104,7 @@ skill en el momento (skill global `registrar-leccion`).
 
 - `docker compose up -d dsh` levanta el harness de DeepSeek (dsh) aislado sobre
   el repo. Ver la skill global `dsh-harness`.
-- `tools/e2e/` tiene scripts de navegador para el asesor y las secciones.
+- `docker compose --profile e2e run --rm e2e` corre Playwright (`e2e/`) contra
+  el `wrangler dev` del host. Los detalles están en `soma-verificar`.
 - Windows: `pkill` no mata procesos y `TaskStop` no libera puertos. Ver la
   skill global `windows-dev`.
