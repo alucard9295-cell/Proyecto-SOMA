@@ -30,3 +30,11 @@ tools/baseline/*.json
 # Playwright (e2e/): dependencias y videos/capturas de cada corrida
 e2e/node_modules/
 e2e/resultados/
+
+# Assets del recorrido 3D (Poly Haven, CC0): se bajan con npm run recorrido:assets
+public/recorrido/
+
+# Render del recorrido en Blender: cuadros y .blend pesados
+tools/recorrido-blender/out/
+tools/recorrido-blender/*.blend
+tools/recorrido-blender/*.blend1

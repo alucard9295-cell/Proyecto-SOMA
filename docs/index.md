@@ -46,6 +46,8 @@ repositorio.
 * [Sistema visual](design/sistema.md) - Tokens, tipografía y guardrails comunes.
 * [Ventana de chat](design/chat.md) - Asesor y copiloto: anatomía, estados y tono.
 * [Portada pública](design/portada.md) - Secciones del sitio de clientes, contacto y mapa.
+* [Recorrido por escenas](design/recorrido.md) - Portada como paseo por la casa transformada: técnica y guion.
+* [Recorrido en Blender](design/recorrido-blender.md) - Plan de producción y handoff: modelo, render Cycles, ffmpeg y cambio de /recorrido a video.
 * [Control room](design/admin.md) - Acceso, secciones y panel de consumo del plan gratis.
 
 ## Decisiones
@@ -60,6 +62,7 @@ repositorio.
 * [ADR-008 stack de despliegue](SOMA-ADR-008-stack-de-despliegue.md) - **Sustituido por el ADR-009.** Render para web y API, Neon para datos; por qué se descartan Vercel y Railway.
 * [ADR-009 todo en Cloudflare](SOMA-ADR-009-cloudflare.md) - Un Worker con Hono, D1, Access y Workers AI en el plan gratis; el stack vigente.
 * [ADR-010 videos en R2](SOMA-ADR-010-videos-en-r2.md) - Propuesta: subida multiparte por el Worker desde /admin y reproducción con Range; espera activar R2.
+* [ADR-011 recorrido en video](SOMA-ADR-011-recorrido-en-video.md) - Clips pre-renderizados en Blender atados al scroll; se descarta el 3D en tiempo real del prototipo.
 
 ## Planes de trabajo
 

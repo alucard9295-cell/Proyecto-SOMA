@@ -115,6 +115,42 @@ orientacion:
     frontera evita prometer flujos que todavía no existen.
 
 ventas:
+  recorrido:
+    marca: Recorrido
+    visita: Agendar visita
+    pista: Baja con el scroll
+    cta: Ver el escenario
+    sin_3d: Este navegador no pudo iniciar el 3D, así que el recorrido se muestra como texto.
+    escenas:
+      - eyebrow: "SOMA · Casas que se transforman"
+        titulo: "Una casa. Varias formas de vivirla."
+        texto: "Baja con el scroll. Entramos por el techo."
+        tick: "Llegada"
+      - eyebrow: "01 · Leer la casa"
+        titulo: "Primero, entender lo que hay."
+        texto: "Techo, muros, estructura y luz: lo que la casa ya tiene, antes de mover un solo muro."
+        tick: "Leer"
+      - eyebrow: "La sala"
+        titulo: "La luz ya estaba aquí."
+        texto: "El ventanal da al patio. Lo que existe también suma a la cuenta."
+        tick: "Sala"
+      - eyebrow: "02 · Proyectar escenarios"
+        titulo: "Los números, antes que la obra."
+        texto: "Cada insumo y cada APU con su precio de hoy, no con un estimado de memoria."
+        tick: "Cocina"
+      - eyebrow: "Unidades"
+        titulo: "Una casa, varias puertas."
+        texto: "La misma estructura puede sostener más de una forma de habitarla."
+        tick: "Unidades"
+      - eyebrow: "Acabados"
+        titulo: "Base, estándar o alta."
+        texto: "Tres niveles de obra, tres cuentas distintas. Se elige con los números a la vista."
+        tick: "Alcoba"
+      - eyebrow: "03 · Decidir con criterio"
+        titulo: "Y ahora, la cuenta."
+        texto: "Un escenario preliminar en minutos. No es una promesa de renta: es un punto de partida."
+        tick: "Patio"
+        cta: true
   hero:
     eyebrow: SOMA / VIVIENDA MULTIFAMILIAR
     titulo_linea1: Una casa.
@@ -125,9 +161,12 @@ ventas:
       Antes de comprar o transformar, entiende el potencial del inmueble. SOMA
       ordena arquitectura, números y decisiones en una primera conversación.
     pasos:
-      - { paso: "01", nombre: Leer la casa }
-      - { paso: "02", nombre: Proyectar escenarios }
-      - { paso: "03", nombre: Decidir con criterio }
+      - paso: "01"
+        nombre: "Leer la casa"
+      - paso: "02"
+        nombre: "Proyectar escenarios"
+      - paso: "03"
+        nombre: "Decidir con criterio"
   simulador:
     eyebrow: SOMA / PRIMERA CUENTA
     titulo_linea1: ¿Qué podría sostener

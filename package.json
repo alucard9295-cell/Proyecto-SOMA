@@ -11,7 +11,8 @@
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "db:migrate:local": "wrangler d1 migrations apply soma --local",
     "db:migrate:remote": "wrangler d1 migrations apply soma --remote",
-    "deploy": "npm run typecheck && npm test && vite build && wrangler deploy"
+    "deploy": "npm run typecheck && npm test && vite build && wrangler deploy",
+    "recorrido:assets": "node scripts/recorrido-assets.mjs"
   },
   "dependencies": {
     "@ag-ui/client": "^1.0.0",
@@ -26,6 +27,9 @@
     "react-dom": "^19.1.0",
     "rehype-harden": "1.1.8",
     "streamdown": "1.6.11",
+    "three": "^0.186.1",
+    "three-gpu-pathtracer": "^0.0.26",
+    "three-mesh-bvh": "^0.9.15",
     "workers-ai-provider": "^4.0.0",
     "zod": "^4.6.5"
   },
