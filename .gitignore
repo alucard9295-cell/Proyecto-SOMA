@@ -38,3 +38,6 @@ public/recorrido/
 tools/recorrido-blender/out/
 tools/recorrido-blender/*.blend
 tools/recorrido-blender/*.blend1
+
+# PDF fuente de los renders (44 MB): no va al repo, ver README > Diseño
+docs/design/arquitectura1.pdf

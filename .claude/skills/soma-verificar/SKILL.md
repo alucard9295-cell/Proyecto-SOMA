@@ -133,3 +133,7 @@ la versión, se cambian las dos a la vez.
   prueba `Function("")`, cae a modo sin eval y sigue. El `z.config({ jitless: true })` de
   `Asistente.jsx` solo cubre nuestro zod.
 - "Default inspector port 9229 not available": otro proceso de node, inofensivo.
+- `db:migrate:remote` falló una vez con `code: 7403` ("account is not valid or is not
+  authorized") aunque el token tiene `d1 (write)` (2026-10-04). Fue transitorio: tras un
+  `npx wrangler d1 list` el reintento aplicó la migración. No es falta de permisos; no
+  hace falta `wrangler login`.

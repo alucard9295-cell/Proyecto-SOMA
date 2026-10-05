@@ -22,9 +22,12 @@ de repositorios ([ADR-003](docs/SOMA-ADR-003-layering-and-boundaries.md)).
 
 ## Qué funciona hoy
 
-- **Sitio público**: portada con contacto y mapa, simulador de proyecto y un
-  asesor que calcula el escenario con el dominio y lo comenta. El asesor tiene
-  un límite por IP y un tope diario.
+- **Sitio público**: portada editorial con renders propios, contacto y mapa, y
+  simulador de proyecto. El **Agente SOMA** es un hombre de Vitruvio en vidrio
+  que despliega en arco tres formas de contacto: chat, WhatsApp y correo. El
+  chat calcula el escenario con el dominio y lo comenta. Pide nombre y correo
+  antes de abrirse ([ADR-012](docs/SOMA-ADR-012-contacto-antes-del-asesor.md)) y
+  tiene un límite por IP y un tope diario.
 - **Panel `/admin`**, detrás de Cloudflare Access y de la lista
   `ADMIN_EMAILS`:
   - resumen;
@@ -48,7 +51,7 @@ que el Worker no tiene.
 npm install
 npm run db:migrate:local     # D1 local; repetir tras cada migración nueva
 npm run dev                  # vite con el runtime de Workers
-npm test                     # vitest: dominio, API y arquitectura (127 tests)
+npm test                     # vitest: dominio, API y arquitectura (131 tests)
 npm run typecheck
 npm run build
 ```
@@ -100,6 +103,30 @@ dashboard.
 - Las skills del proyecto están en `.claude/skills/`, y la documentación viva
   en [`docs/index.md`](docs/index.md).
 
+## Diseño
+
+| Qué | Dónde | Quién lo ve |
+| --- | --- | --- |
+| Especificación viva (secciones, reglas, Agente SOMA) | [`docs/design/`](docs/design/) | Todo el que tenga el repo |
+| Export de Google Stitch (HTML, `DESIGN.md`, captura) | [`docs/design/stitch/`](docs/design/stitch/) | Todo el que tenga el repo |
+| Prompts usados en Stitch | [`docs/design/stitch-prompt-v2.md`](docs/design/stitch-prompt-v2.md) | Todo el que tenga el repo |
+| Proyecto en Google Stitch | stitch.withgoogle.com, en la cuenta de la dueña | Solo a quien ella comparta |
+| Lienzo de diseño en Claude | claude.ai (artifact privado de la dueña) | Solo a quien ella comparta |
+
+Lo que manda es lo que está en `docs/design/` y en el código. Stitch y el lienzo
+de Claude son mesas de trabajo: cuando una idea se aprueba, se pasa a la
+especificación y se implementa.
+
+**Para que alguien más vea o itere**, la dueña comparte el proyecto de Stitch
+y el lienzo de Claude desde el botón *Compartir* de cada uno, con el correo de
+esa persona. Para iterar sobre el lienzo con Claude, la otra persona necesita
+cuenta en claude.ai y permiso de edición, no solo de lectura. Sin esos accesos
+basta con clonar el repo: `docs/design/stitch/code.html` se abre directo en el
+navegador.
+
+El PDF fuente de los renders (`docs/design/arquitectura1.pdf`, 44 MB) no se
+sube al repo por tamaño. Se pide a la dueña.
+
 ## Próximos pasos
 
 1. **Activar R2** en el dashboard (lo hace la dueña). Habilita la carga de
@@ -108,6 +135,10 @@ dashboard.
 2. **Más E2E**: CU-06 (APU) y CU-08 (asesor). Ver
    [el plan](docs/SOMA-E2E-TEST-PLAN.md).
 3. **Verificar Access en `/admin`** con Google y OTP en producción.
+4. **Pintar sobre la imagen guía**: el visitante sube una foto o un plano y
+   Workers AI (FLUX.2 [klein] 4B) pinta la propuesta encima
+   ([ADR-013](docs/SOMA-ADR-013-pintar-sobre-imagen-guia.md), propuesta).
+   Primero, una prueba de calidad con fotos reales.
 
 ## Seguridad
 

@@ -35,7 +35,7 @@ Toda decisión de arquitectura va ahí como ADR, no en comentarios de código.
 ```powershell
 npm install
 npm run dev                  # vite con el runtime de Workers
-npm test                     # vitest: 127 tests, tienen que pasar todos
+npm test                     # vitest: 131 tests, tienen que pasar todos
 npm run typecheck
 npm run build                # obligatorio antes de dar por hecho un cambio
 npm run db:migrate:local     # tras añadir un archivo en migrations/

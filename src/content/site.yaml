@@ -68,6 +68,13 @@ resumen:
     - { ruta: /admin/apus, etiqueta: Construir un APU ↗, principal: true }
     - { ruta: /admin/insumos, etiqueta: Ordenar insumos }
     - { ruta: /admin/simulador, etiqueta: Simular proyecto }
+  # Quienes dejaron nombre y correo antes de abrir el asesor publico.
+  contactos:
+    eyebrow: ASESOR PÚBLICO
+    titulo: Quién quiso conversar
+    caption: ÚLTIMOS 50
+    vacio: Todavía nadie ha abierto el asesor del sitio.
+    visitas: visita(s)
 
 # Esta sección describía Facturas, Chroma, Inteligencia y DeepSeek: ninguno
 # existe en el producto actual. Reescrita para contar lo que sí hace.
@@ -153,20 +160,77 @@ ventas:
         cta: true
   hero:
     eyebrow: SOMA / VIVIENDA MULTIFAMILIAR
-    titulo_linea1: Una casa.
-    titulo_linea2: Varias formas
-    titulo_linea3: de
-    titulo_enfasis: vivirla.
+    titulo: Una casa.
+    titulo_enfasis: Varias formas de vivirla.
     descripcion: >-
       Antes de comprar o transformar, entiende el potencial del inmueble. SOMA
       ordena arquitectura, números y decisiones en una primera conversación.
     pasos:
       - paso: "01"
         nombre: "Leer la casa"
+        texto: "Techo, muros, estructura y luz: lo que la casa ya tiene, antes de mover un solo muro."
       - paso: "02"
         nombre: "Proyectar escenarios"
+        texto: "Cada insumo y cada APU con su precio de hoy, no con un estimado de memoria."
       - paso: "03"
         nombre: "Decidir con criterio"
+        texto: "Un escenario preliminar en minutos. No es una promesa de renta: es un punto de partida."
+  # Portada editorial (spec: docs/design/stitch/DESIGN.md). Solo enlaces a
+  # superficies que existen: anclas de esta pagina. El recorrido 3D sigue en
+  # /recorrido, pero sale de la portada por ahora.
+  portada:
+    # S0 cabecera
+    marca_sub: ARQUITECTURA
+    nav:
+      - { href: "#propuestas", etiqueta: Propuestas }
+      - { href: "#enfoque", etiqueta: Método }
+      - { href: "#simulador", etiqueta: Simulador }
+      - { href: "#contacto", etiqueta: Contacto }
+    menu_abrir: Abrir menú
+    menu_cerrar: Cerrar menú
+    hero_cta: Simular mi casa ↗
+    hero_cta_secundario: Ver propuestas
+    # Galeria del hero: renders propios de SOMA (Blender), no fotos de obra.
+    # nombre en negrita + lugar en cursiva + etiqueta celeste (DESIGN.md).
+    galeria_rol: carrusel
+    galeria_anterior: Imagen anterior
+    galeria_siguiente: Imagen siguiente
+    galeria_ir: Ver imagen
+    galeria_pausar: Pausar galería
+    galeria_reanudar: Reanudar galería
+    # S1 inicio: la galeria del hero.
+    diapositivas:
+      - { img: sala, nombre: Sala, lugar: luz filtrada, etiqueta: "PROPUESTA SOMA · ZONA SOCIAL", alt: "Render de una sala con sofá, dos butacas y cortinas de lino frente al ventanal" }
+      - { img: cocina, nombre: Cocina, lugar: a lo largo de la luz, etiqueta: "PROPUESTA SOMA · COCINA", alt: "Render de una cocina lineal blanca con isla, luz bajo la alacena y ventana alta" }
+      - { img: habitacion-ventanal, nombre: Habitación, lugar: frente al ventanal, etiqueta: "PROPUESTA SOMA · DESCANSO", alt: "Render de una habitación con cama tapizada frente a un ventanal con cortinas" }
+      - { img: sala-luz, nombre: Estar, lugar: entre cortinas, etiqueta: "PROPUESTA SOMA · ZONA SOCIAL", alt: "Render de un estar con sofá y lámpara de pie junto a cortinas de piso a techo" }
+    # S2 propuestas
+    propuestas:
+      eyebrow: SOMA / PROPUESTAS
+      titulo: Espacios
+      titulo_enfasis: que ya imaginamos
+      ref: REF.
+      texto: >-
+        Renders de propuestas interiores de SOMA: así se ve una decisión antes
+        de comprar un solo material.
+      filtros:
+        - { id: todos, etiqueta: Selección }
+        - { id: social, etiqueta: Zona social }
+        - { id: cocina, etiqueta: Cocina }
+        - { id: descanso, etiqueta: Descanso }
+      piezas:
+        - { img: sala, nombre: Sala, lugar: luz filtrada, tipo: social, etiqueta: ZONA SOCIAL, alt: "Sala con sofá y dos butacas frente al ventanal" }
+        - { img: cocina, nombre: Cocina, lugar: lineal, tipo: cocina, etiqueta: COCINA, alt: "Cocina lineal blanca con isla y ventana alta" }
+        - { img: habitacion, nombre: Alcoba, lugar: luz de mañana, tipo: descanso, etiqueta: DESCANSO, alt: "Alcoba con cama tapizada junto al ventanal" }
+        - { img: cocina-isla, nombre: Isla, lugar: luz cálida, tipo: cocina, etiqueta: COCINA, alt: "Isla de cocina con luz cálida bajo los muebles altos" }
+        - { img: sala-luz, nombre: Estar, lugar: entre cortinas, tipo: social, etiqueta: ZONA SOCIAL, alt: "Estar con sofá y lámpara de pie junto a las cortinas" }
+        - { img: habitacion-ventanal, nombre: Habitación, lugar: frente al ventanal, tipo: descanso, etiqueta: DESCANSO, alt: "Habitación con cama frente a un ventanal de piso a techo" }
+    # S3 enfoque
+    enfoque:
+      eyebrow: SOMA / MÉTODO
+      titulo: Cómo
+      titulo_enfasis: trabajamos
+  # S4 simulador
   simulador:
     eyebrow: SOMA / PRIMERA CUENTA
     titulo_linea1: ¿Qué podría sostener
@@ -189,24 +253,42 @@ ventas:
     asesor_listo: Simulador actualizado ·
     asesor_error: "No pude calcular el escenario:"
     resultado_eyebrow: ESCENARIO PRELIMINAR
+    hoja: HOJA SIM-01
+    grupo_inmueble: El inmueble
+    grupo_renta: La renta
+    grupo_renta_nota: opcional
+    calidades:
+      - { id: basic, etiqueta: Base }
+      - { id: standard, etiqueta: Estándar }
+      - { id: premium, etiqueta: Alta }
+    vacio: >-
+      Ajusta los datos del inmueble y pulsa «Ver escenario». La cifra la
+      calcula el servidor con los costos de SOMA.
+    composicion: Composición de la inversión
+    partes:
+      base: Obra
+      design: Diseño
+      permits: Permisos
+      contingency: Imprevistos
+      acquisition_cost: Compra
+      closing_costs: Cierre
+    costo_m2: Costo de obra por m²
     kpis:
       inversion: Inversión total
       flujo: Flujo neto anual
       roi: ROI anual
       payback: Payback
+      anios: años
+      sin_renta: "—"
+  # Fuera de la portada por ahora (video del dron retirado). Se deja el texto
+  # para volver a ponerla: Film() en el historial de SalesSite.jsx.
   film:
     eyebrow: SOMA / CONTEXTO
     titulo_linea1: La idea no es ver el dron.
     titulo_linea2: Es ver lo que puede llegar a ser.
-  existente:
-    eyebrow: FASE 1 / CASA EXISTENTE
-    titulo_linea1: Lo que ya tienes
-    titulo_enfasis: también funciona.
-    descripcion: >-
-      Antes de imaginar una transformación, leemos la base: estructura,
-      distribución, iluminación, jardín y posibilidades reales de adaptación.
-    pie: Vista de lectura inicial · casa unifamiliar en Bogotá
+    video_alt: Recorrido aéreo de un proyecto de vivienda
 
+  # S5 contacto (los canales estan en contacto:, mas abajo)
   contacto:
     eyebrow: SOMA / CONTACTO
     titulo_linea1: Visítanos
@@ -216,6 +298,7 @@ ventas:
       conversación es para entender el lugar, no para venderte una obra.
     direccion_etiqueta: Dónde estamos
     mapa_titulo: Mapa de Villa Luz, Engativá, Bogotá
+  # S6 pie
   footer:
     legal: Las cifras del simulador son un escenario preliminar, no una cotización.
 
@@ -225,22 +308,59 @@ ventas:
 contacto:
   direccion: Villa Luz, Engativá, Bogotá
   mapa: https://www.google.com/maps?q=Villa+Luz,+Engativ%C3%A1,+Bogot%C3%A1&output=embed
-  whatsapp: ""
+  whatsapp: "573115056109"
   instagram: ""
   facebook: ""
 
-# El asesor vive en un globo flotante, no en una sección de la página.
+# El asesor vive en un globo flotante, no en una sección de la página. Se
+# presenta como "Agente SOMA"; firma es la etiqueta en dos líneas del lanzador.
 asesor:
-  titulo: Asesor SOMA
+  titulo: Agente SOMA
+  firma:
+    antes: Agente
+    nombre: SOMA
   subtitulo: orientación preliminar
   bienvenida: >-
-    Soy el asesor de SOMA. Cuéntame qué inmueble tienes o qué te gustaría
+    Soy el agente de SOMA. Cuéntame qué inmueble tienes o qué te gustaría
     estudiar.
   sugerencias:
     - Quiero convertir una casa de 180 m² en 3 apartamentos
     - ¿Cómo se arma el presupuesto de una remodelación?
     - ¿Qué es un APU y para qué sirve?
   placeholder: Escribe tu pregunta...
+  # Paso previo: nombre y correo antes de abrir el chat (ADR-012).
+  previo:
+    eyebrow: AGENTE SOMA
+    titulo: Antes de empezar,
+    titulo_enfasis: ¿cómo te llamas?
+    texto: >-
+      Déjanos tu nombre y correo para poder retomar la conversación contigo si
+      el escenario te interesa.
+    nombre: Nombre
+    correo: Correo electrónico
+    autoriza: >-
+      Autorizo a SOMA a guardar mi nombre y correo para responder esta
+      consulta (Ley 1581 de 2012). No los compartimos con nadie.
+    boton: Empezar a chatear ↗
+    enviando: Guardando…
+    cerrar: Cerrar
+  # Tocar el Vitruvio despliega en arco el chat, WhatsApp y correo.
+  # WhatsApp solo aparece si contacto.whatsapp tiene numero.
+  menu:
+    etiqueta: Formas de contacto
+    contacto: Contactar a SOMA
+    whatsapp: WhatsApp
+    correo: Correo
+    chat: Hablar con el agente
+  # El mismo formulario del paso previo, sin chat: deja nombre y correo en D1.
+  correo:
+    titulo: Te escribimos
+    titulo_enfasis: nosotros.
+    texto: >-
+      Déjanos tu nombre y correo, y SOMA te responde por ese medio.
+    boton: Enviar mis datos ↗
+    gracias: >-
+      Recibimos tus datos. SOMA te escribirá a ese correo.
   # Cuando se agota el cupo diario del asesor (lo escribe el Worker).
   agotado: >-
     Por hoy ya respondí todas las consultas que puedo. Escríbenos por WhatsApp

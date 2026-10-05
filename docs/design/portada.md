@@ -14,17 +14,46 @@ como un dossier de arquitectura, no como una landing SaaS.
 
 ## Orden de secciones
 
-1. **Hero** — eyebrow, titular serif en tres líneas con énfasis terracota,
-   descripción (≤ 2 frases), los tres pasos numerados, visual de la casa.
-2. **Simulador** — copia a la izquierda, formulario en dos columnas, panel de
-   resultado con 4 KPIs. Los montos grandes llevan la cifra formateada debajo
-   (`.simulator-hint`).
-3. **Film** — video del dron, sin controles, silenciado, con leyenda.
-4. **Casa existente** — texto + infografía con pie de foto.
-5. **Contacto** — canales y mapa (ver abajo).
-6. **Footer** — marca, redes con icono, dirección y aviso legal corto.
+Cada sección tiene un nombre corto (`S1 inicio`, `S2 propuestas`…) que es a la
+vez su `id` (el ancla de la URL), la etiqueta del bloque en `site.yaml` y el
+comentario del mapa en `SalesSite.jsx`. Para pedir o hacer un cambio basta con
+el nombre: "en S2 cambia el título" lleva a un solo componente y un solo bloque.
 
-El asesor flota encima (ver [chat.md](chat.md)); no ocupa una sección.
+| Nombre | Componente | Textos en `site.yaml` | Qué es |
+| --- | --- | --- | --- |
+| S0 cabecera | `Cabecera()` | `ventas.portada` (`marca_sub`, `nav`) | Marca, anclas y menú móvil |
+| S1 inicio | `Hero()` | `ventas.portada.diapositivas` | Galería de renders propios a pantalla completa |
+| S2 propuestas | `Propuestas()` | `ventas.portada.propuestas` | Mosaico de renders con filtro por espacio |
+| S3 enfoque | `Enfoque()` | `ventas.portada.enfoque` | El método en tres pasos |
+| S4 simulador | `RemodelSimulator()` | `ventas.simulador` | Formulario y escenario preliminar |
+| S5 contacto | `Contacto()` | `ventas.contacto` y `contacto` | Canales y mapa (ver abajo) |
+| S6 pie | `Footer()` | `ventas.footer` | Marca, redes, dirección y aviso legal |
+| asesor | `<Lanzador />` | `asesor` (`firma`, `menu`, `previo`, `correo`) | Agente SOMA: Vitruvio con arco de contacto |
+
+El trabajo de diseño se concentra en S1 y S2. El video del dron (la sección
+Film) salió de la portada por ahora; su texto sigue en `ventas.film`.
+
+### Agente SOMA
+
+El lanzador es un hombre de Vitruvio en silueta dentro de un círculo de vidrio
+(fondo translúcido con `backdrop-filter`, borde dorado). A su izquierda va la
+firma "AGENTE / SOMA" en una caja de vidrio, unida a la figura por una cota
+dorada. En móvil solo queda la figura.
+
+Al tocar la figura, las formas de contacto **se despliegan en arco** desde ella,
+como en la referencia 57uno.com: cada una es un círculo con su etiqueta a la
+izquierda. Los ángulos los pone `Lanzador.jsx`; en móvil el arco se estira
+hacia arriba para que las etiquetas no se salgan de la pantalla.
+
+* **Hablar con el agente** (círculo dorado): abre el chat y pide nombre y
+  correo la primera vez (ADR-012). La ventana del chat usa el mismo vidrio
+  oscuro.
+* **WhatsApp** (círculo verde con el logo): abre `wa.me` con
+  `contacto.whatsapp`. Si el número está vacío, la opción no aparece.
+* **Correo**: pide nombre y correo, sin chat. Los datos quedan en D1 y se ven
+  en el panel.
+
+Esc o un clic fuera cierran el arco.
 
 ## Contacto
 

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=Jost:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "background": "#f9f9f7", "surface-container-high": "#e8e8e6", "surface": "#f9f9f7", "inverse-on-surface": "#f1f1ef", "tertiary": "#000000", "surface-tint": "#52606d", "outline-variant": "#c4c7cc", "on-secondary-container": "#566676", "on-primary-fixed": "#0f1d28", "on-primary-fixed-variant": "#3b4855", "primary-fixed-dim": "#bac8d7", "outline": "#74777c", "on-secondary": "#ffffff", "secondary-container": "#d3e4f7", "on-surface": "#1a1c1b", "on-tertiary-container": "#008eba", "surface-container-low": "#f4f4f2", "secondary-fixed-dim": "#b7c8da", "on-error-container": "#93000a", "primary-fixed": "#d6e4f4", "error": "#ba1a1a", "primary": "#000000", "on-error": "#ffffff", "surface-variant": "#e2e3e1", "tertiary-container": "#001e2b", "on-secondary-fixed-variant": "#384857", "surface-dim": "#dadad8", "surface-container-lowest": "#ffffff", "error-container": "#ffdad6", "surface-container": "#eeeeec", "inverse-primary": "#bac8d7", "tertiary-fixed-dim": "#71d2ff", "surface-bright": "#f9f9f7", "surface-container-highest": "#e2e3e1", "on-secondary-fixed": "#0c1d2a", "secondary-fixed": "#d3e4f7", "on-tertiary-fixed-variant": "#004d66", "on-tertiary-fixed": "#001e2b", "on-background": "#1a1c1b", "on-primary-container": "#778593", "primary-container": "#0f1d28", "secondary": "#506070", "on-primary": "#ffffff", "tertiary-fixed": "#c0e8ff", "on-tertiary": "#ffffff", "on-surface-variant": "#43474b", "inverse-surface": "#2f3130" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "margin": "4rem", "space-xl": "7rem", "gutter-mobile": "1rem", "gutter": "1.5rem", "space-sm": "1rem", "space-md": "2rem", "margin-mobile": "1.25rem", "space-xs": "0.5rem", "space-lg": "4rem" }, fontFamily: { "body-sm": ["DM Sans"], "display-xl": ["Jost"], "headline-md": ["Jost"], "headline-lg": ["Jost"], "headline-sm": ["Jost"], "caption": ["DM Sans"], "headline-lg-mobile": ["Jost"], "headline-md-mobile": ["Jost"], "display-xl-mobile": ["Jost"], "label-caps": ["DM Sans"], "body-lg": ["DM Sans"], "body-md": ["DM Sans"] }, fontSize: { "body-sm": ["13px", { "lineHeight": "20px", "fontWeight": "400" }], "display-xl": ["72px", { "lineHeight": "80px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "500" }], "headline-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-sm": ["22px", { "lineHeight": "28px", "fontWeight": "500" }], "caption": ["12px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "400" }], "headline-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-md-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "500" }], "display-xl-mobile": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.18em", "fontWeight": "700" }], "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }], "body-md": ["15px", { "lineHeight": "24px", "fontWeight": "400" }] } } } };</script></head><body class="bg-surface-container-low font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-container-low/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter-mobile flex items-center justify-between"><div class="flex items-center gap-space-xs"><img alt="SOMA Arquitectura Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X3N79r5xRvGy6D2xD3Dm1Ru_cziae87Yk2EkhxmDH_Slyvm0RrbEMx6JeCcSg3jNk0WPT4ewuuDGn_WYOX3y9R0R2X2O5mvEJ4dThqPQMXr996SWp6PEAK54UNdxh-TbmoiG-mKmUt6RXJvWbS0pBvf7xSmF9u01c71v2NneAm3f1n1Lgk3MOSMrd6tvre8chVv66zeT2i50rhfH5LSxPSvnGnjRe11jNUl_GH6A851Va7eUrYoM_kooc"/><div class="flex flex-col"><span class="font-label-caps text-label-caps uppercase tracking-widest text-on-surface">SOMA</span><span class="font-caption text-caption uppercase tracking-wider text-secondary leading-none">Monograph Portfolio</span></div></div><div class="flex items-center gap-space-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button aria-label="Menu" class="w-11 h-11 flex items-center justify-center text-on-surface hover:text-secondary transition-colors"><span class="material-symbols-outlined text-[24px]">menu</span></button></div></div></header><main class="flex flex-col relative w-full pt-16 pb-20 bg-surface-container-low min-h-screen"><div class="flex flex-col w-full text-on-surface">
+<!-- 1. EDITORIAL HEADER BRANDING OVERLAY STRIP -->
+<div class="w-full bg-surface-container-low px-gutter-mobile py-4 flex items-center justify-between border-b border-surface-variant">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm uppercase tracking-[0.22em] text-primary font-bold leading-none">SOMA</span>
+<span class="font-label-caps text-[9px] uppercase tracking-[0.3em] text-secondary mt-1">Arquitectura · Bogotá</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-block w-2 h-2 bg-[#29B2E5]"></span>
+<span class="font-label-caps text-label-caps uppercase text-secondary">Taller No. 04</span>
+</div>
+</div>
+<!-- 2. FULL-SCREEN HERO GALLERY -->
+<section class="relative w-full h-[88vh] min-h-[560px] bg-primary flex flex-col justify-end overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Modern exposed red brick residential tower in Bogota Chapinero Alto at dusk. Warm interior lights glow through large glass apertures. The corner building stands proudly on a wet sloped cobblestone street with the Andean mountains in the rainy atmospheric background. Architectural photography, sharp editorial framing." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD_3hoLjVL0Lx7MvtYHCmLU3ndYtqahl5R9pyguiKtXbTi9FWA2LyTqAUbAx6h5_xzK3FR-5BWZB1-vA4GD0b4FUr1LFP_M64CKe72K51Fjzmp42DR-UnZFtxvP2dMIeugSQsKEksuYk3M3GVWhVR1flu84P2OEAnF0guS-jadOtH5KaW0i9s9LeEGzpaVcale1Wi-ZL8kbLDQMDATvJC_4oW6x9DNQCk1Yf2witlOjesnBQ_vywmwcjQ')"></div>
+<!-- Scrim & Blueprint ambient gradient -->
+<div class="absolute inset-0 bg-gradient-to-t from-[#0D1B26] via-[#0D1B26]/40 to-transparent"></div>
+<!-- Editorial Overlay Content -->
+<div class="relative z-10 px-gutter-mobile pb-8 pt-12 flex flex-col">
+<div class="flex items-center gap-2 mb-2">
+<span class="w-1.5 h-1.5 bg-[#29B2E5]"></span>
+<span class="font-label-caps text-[10px] tracking-[0.24em] text-[#29B2E5] uppercase font-bold">VIVIENDA MULTIFAMILIAR · BOGOTÁ</span>
+</div>
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-white leading-none tracking-tight">
+        Casa Patio
+      </div>
+<div class="font-headline-md-mobile text-headline-md-mobile font-light italic text-white/80 mt-1">
+        Chapinero Alto
+      </div>
+<div class="flex items-center justify-between mt-6 pt-4 border-t border-white/15">
+<div class="flex items-center gap-2">
+<span class="font-caption text-caption text-white/70">REF. 042</span>
+<span class="text-white/30">/</span>
+<span class="font-caption text-caption text-white/70">2024</span>
+</div>
+<!-- Minimalist slide indicator dots -->
+<div aria-label="Slide indicators" class="flex items-center gap-1.5">
+<span class="h-1 w-6 bg-[#29B2E5]"></span>
+<span class="h-1 w-2 bg-white/30"></span>
+<span class="h-1 w-2 bg-white/30"></span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. PORTFOLIO SECTION -->
+<section class="w-full bg-surface-container-low pt-12 pb-16 px-gutter-mobile flex flex-col">
+<div class="flex flex-col mb-6">
+<span class="font-label-caps text-[10px] tracking-[0.25em] text-secondary uppercase font-bold">PORTAFOLIO</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile mt-2 leading-tight">
+<span class="font-bold text-[#0D1B26] block uppercase tracking-tight">Nuestros</span>
+<span class="font-light italic text-[#3D4D5C] block">proyectos</span>
+</h2>
+</div>
+<!-- Horizontal scrolling filter tabs with hairline line -->
+<div class="w-full overflow-x-auto pb-2 -mx-gutter-mobile px-gutter-mobile mb-6 border-b border-[#E2E2DF] flex gap-5 whitespace-nowrap scrollbar-none">
+<button class="pb-2.5 font-label-caps text-label-caps uppercase text-[#29B2E5] border-b-2 border-[#29B2E5] font-bold">SELECCIÓN</button>
+<button class="pb-2.5 font-label-caps text-label-caps uppercase text-secondary hover:text-on-surface transition-colors">VIVIENDA MULTIFAMILIAR</button>
+<button class="pb-2.5 font-label-caps text-label-caps uppercase text-secondary hover:text-on-surface transition-colors">VIVIENDA SOCIAL</button>
+<button class="pb-2.5 font-label-caps text-label-caps uppercase text-secondary hover:text-on-surface transition-colors">CASAS</button>
+<button class="pb-2.5 font-label-caps text-label-caps uppercase text-secondary hover:text-on-surface transition-colors">DISEÑO A MEDIDA</button>
+<button class="pb-2.5 font-label-caps text-label-caps uppercase text-secondary hover:text-on-surface transition-colors">COMERCIO E INSTITUCIONAL</button>
+</div>
+<!-- 7 Edge-to-edge Project Cards (Asymmetric editorial masonry layout) -->
+<div class="flex flex-col gap-6">
+<!-- Card 1: 1-col full width -->
+<article class="relative w-full h-80 bg-primary-container overflow-hidden group">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Dramatic mountain residential architecture in La Calera forest above Bogota. Weathered clay brick and board-formed concrete facade nested among native Andean pine trees and soft morning mist. Editorial architecture framing with warm diffused daylight." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDDq4GtNMMniRg8MbyALre9gTdMJ3G7YVl6ZPzGfHPYvi7on-QCeL-T8GuPp94OZir5pTPvFH837lwXaLoYjxSZll-mJ3lPm3qxh0z6n_ddupnLnaH7j1PAffcfcd28INafJ65B9dAyIJoMgQjl_1q4_vN4-RDr1F6p3RLY84iKxA0tPaL8aFWaqBxwFzB126v9kKVS1v-ZF8xZAahqvGNOXynmNPUrq43Z6B-1bzQgmQmzwRtUSn5bIA')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0D1B26] via-[#0D1B26]/30 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-5 flex flex-col">
+<span class="font-label-caps text-[10px] tracking-[0.2em] text-[#29B2E5] uppercase font-bold">CASA BOSQUE · LA CALERA</span>
+<div class="font-headline-sm text-headline-sm font-bold text-white mt-1">Refugio de Niebla</div>
+<div class="flex items-center justify-between text-white/70 font-caption text-caption mt-2 pt-2 border-t border-white/10">
+<span>Residencial Unifamiliar · 380 m²</span>
+<span>2024</span>
+</div>
+</div>
+</article>
+<!-- Staggered 2-col Cards: Card 2 & Card 3 -->
+<div class="grid grid-cols-2 gap-3 w-full">
+<!-- Card 2 -->
+<article class="relative h-64 bg-primary-container overflow-hidden group">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Chic modern brick facade apartment building in El Chico neighborhood of Bogota. Geometric rhythmic terracotta louvers and black steel minimalist window frames. Clean architectural photography in overcast daylight." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDVAy6pixormisFzyE5ad488qdGHEqM-lHwedjOzbofrULJHfAr6Qj4GePIJ4K2Co3-wdaNlNp68NNnHOlE05Ht1sJoGz_OegpCIuuL0wxIiDrBesf7-lh1H-d1P1b8nJ_Xzd0d4m2Y2ECrGAO77o1aEpRApvxpkBUifeJj_lLZ-8JoNHU1QQA-qR__IOrA3u9HWOVH3SsGxk3Ip6mLv67z1fBTCgMe9emWPQiV9uCGqMwPbSy-eg9sHw')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0D1B26] via-[#0D1B26]/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-3 flex flex-col">
+<span class="font-label-caps text-[9px] tracking-[0.18em] text-[#29B2E5] uppercase font-bold">EDIFICIO 74 · CHICÓ</span>
+<div class="font-headline-sm text-[16px] leading-5 font-bold text-white mt-0.5">Torre 74</div>
+<span class="text-white/70 font-caption text-[11px] mt-1">Multifamiliar · 2023</span>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="relative h-64 bg-primary-container overflow-hidden group">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Minimalist whitewashed rammed earth and local stone villa in Villa de Leyva Colombia. Expansive courtyard, terracotta tiled eaves, and dry desert flora. Editorial architectural photography bathed in warm late afternoon golden sun." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCMrYcc5703TnORxi-T7vUEhYRJnICsVwGpUSRjpx03QDY2J6VaXN2LSvypVDPG6dx1JN2oa89qig781c8EIViQiO27it8_1XRwNOVZoMIVjhpGHdy-t1z9ZJdNS5GdHwOj5NAyGYkWdsjQbPuV03i7Zgq3dsn9CyUIfnMqxfzTPULycFmhtvI01obo_UfL87q2qPy40D_gwPZL_xbDIfn9BFtF0ae0tiH2Yj5iE0sXloBUrqWeg56x4Q')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0D1B26] via-[#0D1B26]/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-3 flex flex-col">
+<span class="font-label-caps text-[9px] tracking-[0.18em] text-[#29B2E5] uppercase font-bold">REFUGIO · VILLA DE LEYVA</span>
+<div class="font-headline-sm text-[16px] leading-5 font-bold text-white mt-0.5">Casa Tapia</div>
+<span class="text-white/70 font-caption text-[11px] mt-1">Unifamiliar · 2023</span>
+</div>
+</article>
+</div>
+<!-- Card 4: Full width statement -->
+<article class="relative w-full h-72 bg-primary-container overflow-hidden group">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="High-end urban apartment high-rise in Los Rosales Bogota with deep cantilevered balconies, integrated native planters, and refined timber detailing. Moody blue-hour dusk setting." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB1W49LfQmdr-i324NYXqtUMPr2toEidalineafjFPvgXvaBiwyCUdq60TZRZ7e6_O7IUEn8zCOHhIFFTrJ6MFu7ejnbI59Sq6_5Fa8EDaE0osXSfAdJnW7f7UFYwm3tOJMO_YS83IjwTrr5APGYZYtEwBgg4ujpZL3KmWzlCZXPOqGgicUIUcyk_zhHvfGJakq7ZeuvvYK6u3VaS5qodB6-y-eC4WzNF5NPONzN99i_FWVuB6Q98oiqg')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0D1B26] via-[#0D1B26]/30 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-5 flex flex-col">
+<span class="font-label-caps text-[10px] tracking-[0.2em] text-[#29B2E5] uppercase font-bold">TORRE NOGAL · ROSALES</span>
+<div class="font-headline-sm text-headline-sm font-bold text-white mt-1">Edificio Rosales 82</div>
+<div class="flex items-center justify-between text-white/70 font-caption text-caption mt-2 pt-2 border-t border-white/10">
+<span>Colectivo · 12 Unidades</span>
+<span>2024</span>
+</div>
+</div>
+</article>
+<!-- Staggered 2-col Cards: Card 5 & Card 6 -->
+<div class="grid grid-cols-2 gap-3 w-full">
+<!-- Card 5 -->
+<article class="relative h-64 bg-primary-container overflow-hidden group">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Open-air coffee tasting pavilion in the Quindio coffee triangle of Colombia. Soaring bamboo Guadua structural framing, concrete plinth, surrounded by lush tropical lush foliage." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBF5HnKxu-zZcGNDBBZ7HHi6XWPlyCbRZbbsqpD_ABtllb187E7P3KRQnhlfK9Xjjhv8uxz66jsfjZPSQFa8ZqvgRfq1LGdFNNsDqlSbYI_HoMjn5tlbWJ7YFvK4FSY5EOREb6ke2JJOTzF-LS-wGnWRoIqyJ_AAB04o8D07nFmnzijlRIwl7CYaXmknGNz8oA3UM19o_S1qhemcSfNum29xJSTmRWDKVSnwSm2S-d3X23z1dXyejxsQA')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0D1B26] via-[#0D1B26]/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-3 flex flex-col">
+<span class="font-label-caps text-[9px] tracking-[0.18em] text-[#29B2E5] uppercase font-bold">PABELLÓN CAFÉ · QUINDÍO</span>
+<div class="font-headline-sm text-[16px] leading-5 font-bold text-white mt-0.5">Taller Cafetero</div>
+<span class="text-white/70 font-caption text-[11px] mt-1">Institucional · 2022</span>
+</div>
+</article>
+<!-- Card 6 -->
+<article class="relative h-64 bg-primary-container overflow-hidden group">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Interior architectural photograph of an industrial brick converted loft in Usaquen Bogota. Double-height exposed concrete beams, steel mezzanine, bespoke oak millwork and soft indirect gallery illumination." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA3iH81AdgnkWgAKp1hAiqHef44MoWvL0m8DreWkDaL5cHcsA_NpZOgUZzVNM79g5jvraBqCCrw7R-Ob27BMFsvZQ8q3Jtb1_kSkR9af1nbvREDv-8hIkjZKjTdApfkn2X6hS7JUyzQMfVq1p46U0orJ6eZTEBaBbfU5OhxuPZfAuaZsTdUjX6-YLShN1EOse6fUtG1w1dfDHxbmjUe7RbdBxjvGohzYWWHv6ZOeo4aYvdihQZ6oWBC6A')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0D1B26] via-[#0D1B26]/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-3 flex flex-col">
+<span class="font-label-caps text-[9px] tracking-[0.18em] text-[#29B2E5] uppercase font-bold">LOFT SANTA ANA · USAQUÉN</span>
+<div class="font-headline-sm text-[16px] leading-5 font-bold text-white mt-0.5">Espacio 402</div>
+<span class="text-white/70 font-caption text-[11px] mt-1">Interiorismo · 2023</span>
+</div>
+</article>
+</div>
+<!-- Card 7: Full width final portfolio piece -->
+<article class="relative w-full h-80 bg-primary-container overflow-hidden group">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Terraced hillside brutalist house overlooking the Aburra valley in Medellin Colombia. Lush hanging gardens, raw textured concrete overhangs, and infinity reflection pool." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDTiGC-Pw-esi3CWJcFlSRAU_BRWFCxQdbM5EYLLKaatPKgHJE_NoIXlsOoCiyKjNGYmQW4qhbF2v_kEkntGpHlscj_VJg52cW8p9IOa2POPivuQAum96d0qNeDhvcXygkpYlkghJpl4jMzLaBJrHW85i8yho4slPBqCwonGst7OZxCGGLds_lubN5jhtfO0yGi33nvyKvHhQ4yUTS0Q5Irou9YJgfx4BdmaP0-pn-RIbkpvajPW9q8Xw')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0D1B26] via-[#0D1B26]/30 to-transparent"></div>
+<div class="absolute bottom-0 left-0 right-0 p-5 flex flex-col">
+<span class="font-label-caps text-[10px] tracking-[0.2em] text-[#29B2E5] uppercase font-bold">CASA TERRAZA · MEDELLÍN</span>
+<div class="font-headline-sm text-headline-sm font-bold text-white mt-1">Residencia Alto de las Palmas</div>
+<div class="flex items-center justify-between text-white/70 font-caption text-caption mt-2 pt-2 border-t border-white/10">
+<span>Unifamiliar y Paisajismo · 520 m²</span>
+<span>2024</span>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- 4. QUOTE SPLIT SECTION -->
+<section class="w-full bg-[#F4F4F2] border-t border-b border-[#E2E2DF] flex flex-col">
+<!-- Top photo: concrete beam & light shaft -->
+<div class="w-full h-64 bg-cover bg-center" data-alt="Close-up architectural detail of raw monolithic board-formed concrete walls and a dramatic skylight casting a sharp diagonal shaft of natural sunlight across textured gray stone surfaces in Bogota Colombia." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAW6XnFZhnbUS6eayuR5Sb3LWWVU_q4sar3ozG8KGoln4wuRbj-Um0pjKkIq58ISd-4U6bIBilHQ0slwbgsitZ9tQlRkiLkCD1FhF-wBTeAG94nKl--qXgmjFL_1I3lQ2n2LgKU_J7O0SMYYFKEn75y9jDqh82VDHxn8atghLNVzRIxSK4iuMwg-1EBp7GaCiISFWqhJWbtivera-vu9msums7sFErAl8Fj0A6rCX5gDV_Vzc-sKlNgOA')"></div>
+<!-- High-impact quote panel -->
+<div class="px-gutter-mobile py-10 flex flex-col justify-center bg-[#F4F4F2]">
+<div class="w-8 h-[2px] bg-[#29B2E5] mb-5"></div>
+<blockquote class="font-headline-sm text-headline-sm font-light italic leading-snug text-[#0D1B26]">
+        “Arquitectura que encuentra potencial en cada terreno, cada presupuesto y cada persona.”
+      </blockquote>
+<div class="mt-6 flex items-center gap-3">
+<span class="font-label-caps text-[11px] font-bold text-[#29B2E5] uppercase tracking-[0.2em]">— ESTUDIO SOMA</span>
+<span class="text-xs text-secondary">/ Manifiesto 01</span>
+</div>
+</div>
+</section>
+<!-- 5. SERVICES ON NAVY WITH FAINT BLUEPRINT GRID -->
+<section class="relative w-full bg-[#0D1B26] text-white py-14 px-gutter-mobile flex flex-col overflow-hidden">
+<!-- Subtle Blueprint SVG grid overlay -->
+<div class="absolute inset-0 pointer-events-none opacity-20" style="background-image: radial-gradient(rgba(41, 178, 229, 0.4) 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="relative z-10 flex flex-col mb-10">
+<span class="font-label-caps text-[10px] tracking-[0.25em] text-[#29B2E5] uppercase font-bold">CAPACIDADES</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile mt-1 leading-tight">
+<span class="font-bold text-white block uppercase tracking-tight">Lo que</span>
+<span class="font-light italic text-[#8A9EAD] block">hacemos</span>
+</h2>
+</div>
+<!-- 4 Numbered Architectural Service Modules -->
+<div class="relative z-10 flex flex-col">
+<!-- 01 -->
+<div class="py-6 border-t border-white/15 flex flex-col gap-2">
+<div class="flex items-baseline justify-between">
+<span class="font-headline-sm text-headline-sm font-bold text-[#29B2E5]">01</span>
+<span class="material-symbols-outlined text-[#29B2E5] text-[22px]">architecture</span>
+</div>
+<h3 class="font-headline-sm text-[19px] font-bold text-white mt-1">Diseño arquitectónico</h3>
+<p class="font-body-md text-body-md text-[#8A9EAD] mt-1 leading-relaxed">
+          Conceptualización, desarrollo volumétrico y modelado BIM paramétrico enfocado en eficiencia espacial y tectónica local.
+        </p>
+</div>
+<!-- 02 -->
+<div class="py-6 border-t border-white/15 flex flex-col gap-2">
+<div class="flex items-baseline justify-between">
+<span class="font-headline-sm text-headline-sm font-bold text-[#29B2E5]">02</span>
+<span class="material-symbols-outlined text-[#29B2E5] text-[22px]">calculate</span>
+</div>
+<h3 class="font-headline-sm text-[19px] font-bold text-white mt-1">Costeo y presupuesto (APU)</h3>
+<p class="font-body-md text-body-md text-[#8A9EAD] mt-1 leading-relaxed">
+          Análisis de precios unitarios riguroso, viabilidad financiera y optimización de materiales desde fase inicial.
+        </p>
+</div>
+<!-- 03 -->
+<div class="py-6 border-t border-white/15 flex flex-col gap-2">
+<div class="flex items-baseline justify-between">
+<span class="font-headline-sm text-headline-sm font-bold text-[#29B2E5]">03</span>
+<span class="material-symbols-outlined text-[#29B2E5] text-[22px]">view_in_ar</span>
+</div>
+<h3 class="font-headline-sm text-[19px] font-bold text-white mt-1">Simulación de proyecto</h3>
+<p class="font-body-md text-body-md text-[#8A9EAD] mt-1 leading-relaxed">
+          Análisis bioclimático, iluminación natural, asoleamiento y recorridos térmicos computacionales.
+        </p>
+</div>
+<!-- 04 -->
+<div class="py-6 border-t border-b border-white/15 flex flex-col gap-2">
+<div class="flex items-baseline justify-between">
+<span class="font-headline-sm text-headline-sm font-bold text-[#29B2E5]">04</span>
+<span class="material-symbols-outlined text-[#29B2E5] text-[22px]">straighten</span>
+</div>
+<h3 class="font-headline-sm text-[19px] font-bold text-white mt-1">Dirección de obra</h3>
+<p class="font-body-md text-body-md text-[#8A9EAD] mt-1 leading-relaxed">
+          Supervisión técnica en sitio, control de calidad artesanal en mampostería a la vista y hormigón.
+        </p>
+</div>
+</div>
+</section>
+<!-- 6. SIMULATOR TEASER (Clean Architectural Calculator) -->
+<section class="w-full bg-[#F4F4F2] py-14 px-gutter-mobile flex flex-col">
+<div class="flex flex-col mb-6">
+<span class="font-label-caps text-[10px] tracking-[0.25em] text-[#8A9EAD] uppercase font-bold">HERRAMIENTA TÉCNICA</span>
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile mt-1 leading-tight">
+<span class="font-bold text-[#0D1B26] block uppercase tracking-tight">Simula tu</span>
+<span class="font-light italic text-[#3D4D5C] block">proyecto</span>
+</h3>
+<p class="font-body-md text-body-md text-[#3D4D5C] mt-2">
+        Área, terminaciones y ubicación: obtén un escenario de costo y plazo en minutos.
+      </p>
+</div>
+<!-- Crisp technical form card with sharp corners, white surface, hairline borders -->
+<div class="w-full bg-white border border-[#E2E2DF] p-5 flex flex-col gap-5">
+<!-- Input 1 -->
+<div class="flex flex-col">
+<label class="font-label-caps text-[10px] tracking-[0.2em] uppercase text-secondary font-bold" for="calc-area">Área estimada (m²)</label>
+<div class="mt-1 flex items-center border-b border-[#3D4D5C] pb-1.5 focus-within:border-[#29B2E5]">
+<input class="w-full font-headline-sm text-[18px] bg-transparent text-[#0D1B26] focus:outline-none" id="calc-area" type="number" value="140"/>
+<span class="font-body-sm text-secondary">m²</span>
+</div>
+</div>
+<!-- Input 2 -->
+<div class="flex flex-col">
+<label class="font-label-caps text-[10px] tracking-[0.2em] uppercase text-secondary font-bold" for="calc-level">Nivel de acabados</label>
+<div class="mt-1 border-b border-[#3D4D5C] pb-1.5 focus-within:border-[#29B2E5]">
+<select class="w-full font-body-md bg-transparent text-[#0D1B26] focus:outline-none appearance-none" id="calc-level">
+<option>Esencial / Concreto visto</option>
+<option selected="">Editorial Premium</option>
+<option>Artesanal a medida</option>
+</select>
+</div>
+</div>
+<!-- Input 3 -->
+<div class="flex flex-col">
+<label class="font-label-caps text-[10px] tracking-[0.2em] uppercase text-secondary font-bold" for="calc-location">Ciudad / Ubicación</label>
+<div class="mt-1 border-b border-[#3D4D5C] pb-1.5 focus-within:border-[#29B2E5]">
+<select class="w-full font-body-md bg-transparent text-[#0D1B26] focus:outline-none appearance-none" id="calc-location">
+<option selected="">Bogotá D.C. - Cerros Orientales</option>
+<option>Medellín / Valle de Aburrá</option>
+<option>Sabana de Bogotá</option>
+</select>
+</div>
+</div>
+<!-- Dynamic Estimate Preview Box -->
+<div class="bg-[#F4F4F2] p-4 border border-[#E2E2DF] flex flex-col gap-1">
+<span class="font-label-caps text-[9px] uppercase tracking-[0.2em] text-[#29B2E5] font-bold">ESCENARIO BASE CALCULADO</span>
+<div class="font-headline-sm text-[17px] text-[#0D1B26] font-medium leading-snug" id="estimate-result">
+          $3.2M – $3.8M COP/m²
+        </div>
+<div class="font-caption text-caption text-secondary">Plazo constructivo estimado: 10 a 14 meses</div>
+</div>
+<!-- CTA Button -->
+<button class="w-full bg-[#0D1B26] text-white py-4 px-5 font-label-caps text-[11px] tracking-[0.2em] uppercase font-bold flex items-center justify-between hover:bg-[#1a2d3d] active:bg-[#29B2E5] active:text-[#0D1B26] transition-colors" id="simulate-btn" type="button">
+<span>Simular escenario técnico</span>
+<span>↗</span>
+</button>
+</div>
+</section>
+<!-- 7. CLIENTS / ALLIES ROW -->
+<section class="w-full bg-surface-container-high py-10 px-gutter-mobile border-t border-b border-[#E2E2DF] flex flex-col">
+<span class="font-label-caps text-[10px] tracking-[0.25em] text-[#8A9EAD] uppercase font-bold mb-5">ALIANZAS &amp; CLIENTES</span>
+<div class="grid grid-cols-2 gap-px bg-[#E2E2DF]">
+<div class="bg-surface-container-high p-4 flex items-center justify-center">
+<span class="font-headline-sm text-[15px] font-bold uppercase tracking-widest text-[#506070]">URBANUM</span>
+</div>
+<div class="bg-surface-container-high p-4 flex items-center justify-center">
+<span class="font-headline-sm text-[15px] font-bold uppercase tracking-widest text-[#506070]">TERRA CAPITAL</span>
+</div>
+<div class="bg-surface-container-high p-4 flex items-center justify-center">
+<span class="font-headline-sm text-[15px] font-bold uppercase tracking-widest text-[#506070]">HORMIGÓN VIVO</span>
+</div>
+<div class="bg-surface-container-high p-4 flex items-center justify-center">
+<span class="font-headline-sm text-[15px] font-bold uppercase tracking-widest text-[#506070]">ARCON ING.</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-high p-3 mt-px border-t border-[#E2E2DF] flex items-center justify-center">
+<span class="font-headline-sm text-[14px] font-bold uppercase tracking-[0.25em] text-[#506070]">BOGOTÁ HÁBITAT</span>
+</div>
+</section>
+<!-- 8. TIMELINE ON NAVY -->
+<section class="w-full bg-[#0D1B26] text-white py-14 px-gutter-mobile flex flex-col">
+<div class="flex flex-col mb-10">
+<span class="font-label-caps text-[10px] tracking-[0.25em] text-[#29B2E5] uppercase font-bold">CRONOLOGÍA</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile mt-1 leading-tight">
+<span class="font-bold text-white block uppercase tracking-tight">Una trayectoria</span>
+<span class="font-light italic text-[#8A9EAD] block">en una línea</span>
+</h2>
+</div>
+<!-- Editorial timeline entries with strict hairline structure -->
+<div class="flex flex-col border-l border-white/20 pl-5 ml-1 gap-8">
+<!-- 2016 -->
+<div class="relative flex flex-col">
+<span class="absolute -left-[25px] top-1.5 w-2 h-2 bg-[#29B2E5]"></span>
+<span class="font-headline-sm text-headline-sm font-bold text-white">2016</span>
+<p class="font-body-md text-body-md text-[#8A9EAD] mt-1 leading-snug">
+          Fundación en Bogotá — Primer proyecto de vivienda colectiva en Chapinero.
+        </p>
+</div>
+<!-- 2019 -->
+<div class="relative flex flex-col">
+<span class="absolute -left-[25px] top-1.5 w-2 h-2 bg-white/50"></span>
+<span class="font-headline-sm text-headline-sm font-bold text-white">2019</span>
+<p class="font-body-md text-body-md text-[#8A9EAD] mt-1 leading-snug">
+          Premio Bienal Colombiana de Arquitectura — Categoría Hábitat Colectivo.
+        </p>
+</div>
+<!-- 2022 -->
+<div class="relative flex flex-col">
+<span class="absolute -left-[25px] top-1.5 w-2 h-2 bg-white/50"></span>
+<span class="font-headline-sm text-headline-sm font-bold text-white">2022</span>
+<p class="font-body-md text-body-md text-[#8A9EAD] mt-1 leading-snug">
+          Expansión a Medellín y consolidación del laboratorio de APU &amp; Simulación.
+        </p>
+</div>
+<!-- 2025 -->
+<div class="relative flex flex-col">
+<span class="absolute -left-[25px] top-1.5 w-2 h-2 bg-[#29B2E5]"></span>
+<span class="font-headline-sm text-headline-sm font-bold text-white">2025</span>
+<p class="font-body-md text-body-md text-[#8A9EAD] mt-1 leading-snug">
+          +45,000 m² diseñados con estándar bioclimático y mampostería estructural.
+        </p>
+</div>
+</div>
+</section>
+<!-- 9. CONTACT + FOOTER -->
+<section class="w-full bg-[#F4F4F2] pt-14 pb-8 px-gutter-mobile flex flex-col">
+<!-- Contact Info -->
+<div class="flex flex-col mb-8">
+<span class="font-label-caps text-[10px] tracking-[0.25em] text-[#8A9EAD] uppercase font-bold">CONTACTO DIRECTO</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile mt-1 leading-tight">
+<span class="font-bold text-[#0D1B26] block uppercase tracking-tight">Hablemos de</span>
+<span class="font-light italic text-[#3D4D5C] block">tu proyecto</span>
+</h2>
+<div class="flex flex-col gap-4 mt-6 pt-6 border-t border-[#E2E2DF]">
+<div class="flex flex-col">
+<span class="font-label-caps text-[10px] uppercase tracking-[0.2em] text-[#8A9EAD]">CORREO ELECTRÓNICO</span>
+<a class="font-body-md font-medium text-[#0D1B26] mt-0.5 hover:text-[#29B2E5]" href="mailto:estudio@soma-arq.co">estudio@soma-arq.co</a>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-[10px] uppercase tracking-[0.2em] text-[#8A9EAD]">TELÉFONO ESTUDIO</span>
+<a class="font-body-md font-medium text-[#0D1B26] mt-0.5 hover:text-[#29B2E5]" href="tel:+576017452890">+57 (601) 745 2890</a>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-[10px] uppercase tracking-[0.2em] text-[#8A9EAD]">TALLER PRINCIPAL</span>
+<span class="font-body-md text-[#3D4D5C] mt-0.5">Calle 69A # 4-82, Chapinero Alto, Bogotá, Colombia</span>
+</div>
+</div>
+</div>
+<!-- Minimalist Architectural Contact Form -->
+<form class="w-full bg-white p-6 border border-[#E2E2DF] flex flex-col gap-5">
+<div class="flex flex-col">
+<label class="font-label-caps text-[10px] tracking-[0.2em] uppercase text-secondary font-bold" for="contact-name">Nombre completo</label>
+<input class="w-full font-body-md bg-transparent border-b border-[#3D4D5C] pb-2 pt-1 text-[#0D1B26] placeholder-[#8A9EAD] focus:border-[#29B2E5] focus:outline-none" id="contact-name" placeholder="Arq. / Propietario / Desarrollador" type="text"/>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-[10px] tracking-[0.2em] uppercase text-secondary font-bold" for="contact-email">Correo electrónico</label>
+<input class="w-full font-body-md bg-transparent border-b border-[#3D4D5C] pb-2 pt-1 text-[#0D1B26] placeholder-[#8A9EAD] focus:border-[#29B2E5] focus:outline-none" id="contact-email" placeholder="contacto@estudio.com" type="email"/>
+</div>
+<div class="flex flex-col">
+<label class="font-label-caps text-[10px] tracking-[0.2em] uppercase text-secondary font-bold" for="contact-details">Mensaje / Detalles del encargo</label>
+<textarea class="w-full font-body-md bg-transparent border-b border-[#3D4D5C] pb-2 pt-1 text-[#0D1B26] placeholder-[#8A9EAD] focus:border-[#29B2E5] focus:outline-none resize-none" id="contact-details" placeholder="Ubicación del lote, metraje aproximado o consulta de diseño..." rows="3"></textarea>
+</div>
+<button class="w-full mt-2 bg-[#0D1B26] text-white py-4 px-6 font-label-caps text-[11px] tracking-[0.2em] uppercase font-bold flex items-center justify-between hover:bg-[#1a2d3d] active:bg-[#29B2E5] active:text-[#0D1B26] transition-colors" type="button">
+<span>Enviar mensaje</span>
+<span>↗</span>
+</button>
+</form>
+<!-- Structural Bottom Footer -->
+<footer class="mt-14 pt-8 border-t border-[#E2E2DF] flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold tracking-widest text-[#0D1B26]">SOMA</span>
+<span class="font-label-caps text-[9px] tracking-[0.28em] text-secondary">ARQUITECTURA</span>
+</div>
+<div class="h-6 w-[2px] bg-[#29B2E5]"></div>
+</div>
+<div class="flex flex-wrap gap-4 text-secondary font-label-caps text-[11px] tracking-wider uppercase">
+<a class="hover:text-primary transition-colors" href="#">Portafolio</a>
+<span>·</span>
+<a class="hover:text-primary transition-colors" href="#">Estudio</a>
+<span>·</span>
+<a class="hover:text-primary transition-colors" href="#">Publicaciones</a>
+<span>·</span>
+<a class="hover:text-primary transition-colors" href="#">Contacto</a>
+</div>
+<div class="font-caption text-caption text-[#8A9EAD] pt-4 border-t border-[#E2E2DF] leading-normal">
+        © 2026 SOMA Arquitectura. Todos los derechos reservados.
+      </div>
+</footer>
+</section>
+<script>
+    // Simulator interactive calculation logic
+    (function initSimulator() {
+      const areaInput = document.getElementById('calc-area');
+      const levelSelect = document.getElementById('calc-level');
+      const locationSelect = document.getElementById('calc-location');
+      const resultElem = document.getElementById('estimate-result');
+      const btn = document.getElementById('simulate-btn');
+
+      function calculate() {
+        if (!areaInput || !resultElem) return;
+        const area = parseFloat(areaInput.value) || 100;
+        let rateMin = 3.0;
+        let rateMax = 3.6;
+
+        if (levelSelect.selectedIndex === 1) {
+          rateMin = 3.4;
+          rateMax = 4.2;
+        } else if (levelSelect.selectedIndex === 2) {
+          rateMin = 4.2;
+          rateMax = 5.5;
+        }
+
+        const totalMin = (area * rateMin / 100).toFixed(1);
+        const totalMax = (area * rateMax / 100).toFixed(1);
+        resultElem.textContent = `$${rateMin}M – $${rateMax}M COP/m² (~$${totalMin}M - $${totalMax}M COP total)`;
+      }
+
+      if (btn) btn.addEventListener('click', calculate);
+      if (areaInput) areaInput.addEventListener('input', calculate);
+      if (levelSelect) levelSelect.addEventListener('change', calculate);
+      if (locationSelect) locationSelect.addEventListener('change', calculate);
+    })();
+  </script>
+</div></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-low/90 backdrop-blur-xl shadow-[0_-1px_8px_rgba(0,0,0,0.04)]" data-active-classes="text-primary font-medium"><div class="flex justify-around items-center h-20 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center gap-1 w-16 h-16 transition-colors text-primary font-medium" data-path="monograph-portfolio" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-label-caps text-label-caps uppercase tracking-wider">Works</span></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-16 text-on-surface-variant transition-colors" data-path="spatial-index" href="#"><span class="material-symbols-outlined text-[20px]">view_list</span><span class="font-label-caps text-label-caps uppercase tracking-wider">Index</span></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-16 text-on-surface-variant transition-colors" data-path="studio-ethos" href="#"><span class="material-symbols-outlined text-[20px]">corporate_fare</span><span class="font-label-caps text-label-caps uppercase tracking-wider">Studio</span></a><a class="flex flex-col items-center justify-center gap-1 w-16 h-16 text-on-surface-variant transition-colors" data-path="studio-contact" href="#"><span class="material-symbols-outlined text-[20px]">mail</span><span class="font-label-caps text-label-caps uppercase tracking-wider">Contact</span></a></div></nav></body></html>

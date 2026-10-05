@@ -9,6 +9,7 @@ import type { AppEnv } from "../env";
 import { HttpError, invalid } from "../errors";
 import { repos } from "../repositories";
 import { asesorar } from "../services/asistentes";
+import { contactoInput, registrarContacto } from "../services/contactos";
 import { modeloDe } from "../services/copiloto";
 import { simulationInput } from "../services/simulacion";
 import { corridaInput, registrarFallo, sse } from "./agui";
@@ -26,6 +27,9 @@ const limiteAsesor = createMiddleware<AppEnv>(async (c, next) => {
 export const sales = new Hono<AppEnv>()
   .post("/asesor", limiteAsesor, validate("json", corridaInput({ mensajes: 12, texto: 500 })), (c) =>
     asesorar(repos(c.env.DB), modeloDe(c.env.AI), c.req.valid("json"), registrarFallo(c)).then((stream) => sse(c, stream)))
+  // Paso previo del asesor. Mismo limite por IP: un script no llena la tabla.
+  .post("/contacto", limiteAsesor, validate("json", contactoInput), async (c) =>
+    c.json(await registrarContacto(repos(c.env.DB), c.req.valid("json")), 201))
   .post("/simulation", validate("json", simulationInput), (c) => {
   try {
     return c.json(calculateRemodeling(c.req.valid("json")));

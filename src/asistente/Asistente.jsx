@@ -16,6 +16,7 @@ import { z } from "zod";
 import copy from "../content/site.yaml";
 import { navigate, useRoute } from "../lib/route.js";
 import { SIMULADOR_EVENTO } from "./Lanzador.jsx";
+import Vitruvio from "./Vitruvio.jsx";
 
 // Sin esto zod prueba `Function("")` para compilar validadores y la CSP
 // (script-src sin unsafe-eval) lo reporta como violacion en cada carga.
@@ -111,6 +112,7 @@ function CabeceraChat({ titleContent, closeButton, tipo }) {
   const c = copy[tipo]; const comun = copy.asistente;
   const ocupado = agent?.isRunning;
   return <header className="chat-cabecera" data-testid="copilot-modal-header">
+    {tipo === "asesor" && <Vitruvio size={44} className={`vitruvio-activo${ocupado ? " vitruvio-ocupado" : ""}`} />}
     <span className={`chat-estado${ocupado ? " chat-estado-ocupado" : ""}`} aria-hidden="true" />
     <div className="chat-titulo">{titleContent}<small role="status">{ocupado ? comun.estado_ocupado : comun.estado_activo}{c.subtitulo ? ` · ${c.subtitulo}` : ""}</small></div>
     {closeButton}
@@ -128,7 +130,7 @@ export default function Asistente({ tipo }) {
   const comun = copy.asistente;
   return <CopilotKitProvider agents__unsafe_dev_only={agentes} enableInspector={false}>
     {tipo === "asesor" ? <HerramientasAsesor /> : <HerramientasCopiloto />}
-    <CopilotPopup defaultOpen className="chat-soma"
+    <CopilotPopup defaultOpen className={`chat-soma chat-${tipo}`}
       header={{ children: (partes) => <CabeceraChat {...partes} tipo={tipo} /> }}
       messageView={{ assistantMessage: SOLO_ESTE_ORIGEN, cursor: CursorChat }} labels={{
       modalHeaderTitle: c.titulo, chatInputPlaceholder: c.placeholder, welcomeMessageText: c.bienvenida,

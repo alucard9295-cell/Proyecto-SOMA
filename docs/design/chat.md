@@ -31,7 +31,7 @@ Los `data-testid` de CopilotKit son el contrato estable para el CSS; las clases
 
 ```
 ┌──────────────────────────────────────┐  marco: 1px #DEDBD1 + sombra suave,
-│ ● Asesor SOMA              ✕         │  radio 18px
+│ ● Agente SOMA              ✕         │  radio 18px
 │   en línea · orientación preliminar  │  cabecera: fondo #1D1D1A, texto #F7F5EF
 ├──────────────────────────────────────┤
 │  bienvenida (serif, 17px)            │

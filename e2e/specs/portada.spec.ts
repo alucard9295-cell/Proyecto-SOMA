@@ -6,7 +6,7 @@ test("el simulador calcula un escenario en pesos", async ({ page }) => {
   page.on("pageerror", (e) => errores.push(e.message));
 
   await page.goto("/");
-  const simulador = page.locator(".sales-simulator");
+  const simulador = page.locator("#simulador");
   await simulador.scrollIntoViewIfNeeded();
   await simulador.getByLabel("Área (m²)").fill("120");
   await simulador.getByLabel("Unidades").fill("2");
@@ -15,7 +15,7 @@ test("el simulador calcula un escenario en pesos", async ({ page }) => {
   await simulador.getByRole("button", { name: /Ver escenario/ }).click();
   expect((await respuesta).status()).toBe(200);
 
-  const inversion = simulador.locator(".sales-kpis > div", { hasText: "Inversión total" }).locator("strong");
+  const inversion = simulador.locator(".ed-kpis > div", { hasText: "Inversión total" }).locator("strong");
   await expect(inversion).toContainText("$");
   expect(errores).toEqual([]);
 });

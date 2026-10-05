@@ -5,6 +5,7 @@
  */
 import { apusRepository } from "./apus";
 import { auditRepository } from "./audit";
+import { contactosRepository } from "./contactos";
 import { documentsRepository } from "./documents";
 import { projectsRepository } from "./projects";
 import { summaryRepository } from "./summary";
@@ -15,6 +16,7 @@ export function repos(db: D1Database) {
   return {
     apus: apusRepository(db),
     audit: auditRepository(db),
+    contactos: contactosRepository(db),
     documents: documentsRepository(db),
     projects: projectsRepository(db),
     summary: summaryRepository(db),

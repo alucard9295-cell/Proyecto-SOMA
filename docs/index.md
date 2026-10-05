@@ -63,6 +63,8 @@ repositorio.
 * [ADR-009 todo en Cloudflare](SOMA-ADR-009-cloudflare.md) - Un Worker con Hono, D1, Access y Workers AI en el plan gratis; el stack vigente.
 * [ADR-010 videos en R2](SOMA-ADR-010-videos-en-r2.md) - Propuesta: subida multiparte por el Worker desde /admin y reproducción con Range; espera activar R2.
 * [ADR-011 recorrido en video](SOMA-ADR-011-recorrido-en-video.md) - Clips pre-renderizados en Blender atados al scroll; se descarta el 3D en tiempo real del prototipo.
+* [ADR-012 contacto antes del asesor](SOMA-ADR-012-contacto-antes-del-asesor.md) - Nombre, correo y consentimiento antes del chat, en D1 y visibles en el admin; sin proveedor de correo. El recorrido sale de la portada sin derogar el ADR-011.
+* [ADR-013 pintar sobre la imagen guía](SOMA-ADR-013-pintar-sobre-imagen-guia.md) - Propuesta: el visitante sube foto o plano y FLUX.2 [klein] 4B de Workers AI pinta la remodelación encima; ~110 neuronas por imagen, sin R2, con tope por IP y diario.
 
 ## Planes de trabajo
 
